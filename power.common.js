@@ -17,8 +17,10 @@ window.di.inject(_ => {
     });
 
     return {
-        Winner,
-        MoveType,
-        Side
+        power: {
+            Winner,
+            MoveType,
+            Side,
+        }
     };
 });

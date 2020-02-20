@@ -1,4 +1,9 @@
 window.di.inject(_ => {
+
+    const debug = {
+        log: (msg) => window.DEBUG && console.log(msg)
+    };
+
     function docReady(fn) {
         // see if DOM is already available
         if (document.readyState === "complete" || document.readyState === "interactive") {
@@ -17,8 +22,7 @@ window.di.inject(_ => {
         });
     };
 
-    const runTests = (title) => {
-        console.log(title);
+    const runTests = () => {
         console.log("Running all tests");
         tests.forEach(({
             title,
@@ -37,11 +41,15 @@ window.di.inject(_ => {
     };
 
     const assert = {
-        equals: (actual, expected) => {
+        equals: (actual, expected, title) => {
             if (actual === expected) {
                 return true;
             } else {
-                throw `${actual} does not equal ${expected}`;
+                let msg = `${actual} does not equal ${expected}`;
+                if (title) {
+                    msg = `${title}\n${msg}`
+                }
+                throw msg;
             }
         },
     };
@@ -49,8 +57,11 @@ window.di.inject(_ => {
     docReady(_ => runTests());
 
     return {
-        addTest,
-        runTests,
-        assert
+        testing: {
+            addTest,
+            runTests,
+            assert,
+            debug,
+        }
     };
 });
