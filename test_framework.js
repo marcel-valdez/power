@@ -52,6 +52,17 @@ window.di.inject(_ => {
                 throw msg;
             }
         },
+        notNull: (actual, title) => {
+            if (actual !== null && actual !== undefined) {
+                return true;
+            } else {
+                let msg = 'value was null, expected non-null';
+                if (title) {
+                    msg = `${title}\n${msg}`
+                }
+                throw msg;
+            }
+        }
     };
 
     docReady(_ => runTests());
