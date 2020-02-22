@@ -1,23 +1,12 @@
-
-let DEBUG = false;
-
-function enableDebugging() {
-    DEBUG = true;
-}
-
-function disableDebugging() {
-    DEBUG = false;
-}
-
-const debug = {
-    log: (msg) => DEBUG && console.log(msg),
-    enableDebugging,
-    disableDebugging
-};
+import utils from './utils.js';
 
 const isBrowser = typeof document !== 'undefined';
 
-const log = (msg) => console && console.log(msg);
+class AssertionError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
 
 const write = (msg) => {
     if(!isBrowser) return;
@@ -64,7 +53,7 @@ async function getTests() {
 }
 
 const addTest = (title, testFn) => {
-    debug.log(`Adding test ${title}.`);
+    utils.debug(`Adding test ${title}.`);
     tests.push({
         title,
         testFn
@@ -76,21 +65,25 @@ const reportResult = (title = '', result, error = '') => {
     msg += ` ${result}`;
     if (error) msg += `\n${error}`
 
-    log(msg);
+    utils.log(msg);
     write(msg);
 };
 
 async function runTests() {
-    debug.log("Waiting for tests...");
+    utils.debug("Waiting for tests...");
     const tests = await getTests();
-    log("Running all tests.");
+    utils.log("Running all tests.");
     while (tests.length > 0) {
         const test = tests.shift();
         try {
             test.testFn();
             reportResult(test.title, "PASS");
         } catch (error) {
-            reportResult(test.title, "FAIL", error);
+            if (error instanceof AssertionError) {
+                reportResult(test.title, "FAIL", error);
+            } else {
+                throw error;
+            }
         }
     }
 };
@@ -107,21 +100,25 @@ const assert = {
         if (actual === expected) {
             return true;
         } else {
-            throw assert.makeErrorMsg(actual, expected, title, 'are not equal');
+            throw new AssertionError(
+                assert.makeErrorMsg(actual, expected, title, 'are not equal'));
         }
     },
     areSame: (actual, expected, title) => {
         if (Object.is(actual, expected)) {
             return true;
         } else {
-            throw assert.makeErrorMsg(actual, expected, title, 'are not the same');
+            throw new AssertionError(
+                assert.makeErrorMsg(
+                    actual, expected, title, 'are not the same'));
         }
     },
     areNotSame: (actual, expected, title) => {
         if (!Object.is(actual, expected)) {
             return true;
         } else {
-            throw assert.makeErrorMsg(actual, expected, title, 'are the same');
+            throw new AssertionError(
+                assert.makeErrorMsg(actual, expected, title, 'are the same'));
         }
     },
     notNull: (actual, title) => {
@@ -143,5 +140,4 @@ export {
     addTest,
     runTests,
     assert,
-    debug,
 };

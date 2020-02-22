@@ -1,7 +1,8 @@
-
 import {Board} from './board.js';
 import {Knight} from './knight.js';
-import {addTest, debug, assert} from './test_framework.js';
+import {PieceType} from './power.common.js'
+import {addTest, assert} from './test_framework.js';
+import utils from './utils.js';
 
 
 addTest('Can create board', () => {
@@ -22,14 +23,15 @@ addTest('Can get piece', () => {
         ]
     });
     // when
-    const actual = board.getPieceAt(0, 1);
+    const actualPiece = board.getPieceAt(0, 1);
     // then
-    assert.areSame(actual, knight);
+    assert.areSame(actualPiece, knight);
 });
 
 addTest('Can move piece', () => {
     // given
-    const knight = new Knight();
+    utils.enableDebug();
+    const knight = new Knight({position: [0, 1]});
     const board = new Board({
         squares: [
             [ null ],
@@ -37,8 +39,9 @@ addTest('Can move piece', () => {
         ]
     });
     assert.areSame(board.getPieceAt(0, 1), knight);
+    assert.equals(board.getPieceAt(0, 0), null);
     // when
-    const actualBoard = board.movePiece([0, 1], [0, 0]);
+    const actualBoard = board.makeMove([0, 1], [0, 0]);
     // then
-    assert.areSame(actualBoard.getPieceAt(0, 0), knight);
+    assert.areSame(actualBoard.getPieceAt(0, 0).type, PieceType.KNIGHT);
 });

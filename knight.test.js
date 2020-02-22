@@ -92,7 +92,7 @@ addTest(
         const target = new Knight({power: 1});
         assert.equals(target.power, 1);
         // when
-        const weak = target.reducePower();
+        const weak = target.powerDown();
         // then
         assert.equals(target.power, 1);
         assert.equals(weak.power, 0);

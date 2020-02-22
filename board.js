@@ -1,6 +1,16 @@
-import {Winner, PieceType} from './power.common.js';
+import {Winner, PieceType, MoveType} from './power.common.js';
+import utils from './utils.js';
 
-const log = (msg) => console && console.log(msg);
+const EMPTY_BOARD = Object.freeze([
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+    [null, null, null, null, null],
+]);
 
 function attack(attacker, defender) {
     let winner;
@@ -67,58 +77,114 @@ function sacrifice(owner, sacrificed) {
     };
 }
 
-function move(
-    piece,
-    from = [fromX = 0, fromY = 0] = [],
-    to = [toX = 0, toY = 0] = []) {
+function setPiece(rows, newPiece, x, y) {
+    return rows.map((row, rowIdx) => {
+        if (rowIdx === y) {
+            return row.map((cell, colIdx) => {
+                if (colIdx === x) {
+                    return newPiece;
+                } else {
+                    return cell;
+                }
+            });
+        } else {
+            return row;
+        }
+    });
 }
 
-function Board(state = { squares: []}) {
+function removePiece(squares, x, y) {
+    return setPiece(squares, null, x, y);
+}
+
+function movePiece(squares, src, dst) {
+    const [x1, y1] = src;
+    const [x2, y2] = dst;
+    const srcPiece = squares[y1][x1];
+    if (srcPiece === null || srcPiece === undefined) {
+        throw `There is no piece to move at (${src})!!`;
+    }
+
+    const pickedupPieceSquares = removePiece(squares, x1, y1);
+    const movedPiece = srcPiece.copy({ position: dst });
+    const droppedPieceSquares = setPiece(pickedupPieceSquares, movedPiece, x2, y2);
+    return droppedPieceSquares;
+}
+
+function Board(state = { squares: EMPTY_BOARD}) {
     const _state = Object.assign({}, state);
 
     this.setup = () => {
         // NO-OP for now
     };
 
-    this.movePiece = (from, to) => {
-        // get the piece at 'from'
-        const piece = getPieceAt(...from);
-        if (!piece) {
-             log(`There is no piece to move at (${...from}).`);
-             return this;
+
+    this.copy = (copyState = null) => {
+        if (copyState === null) {
+            return this;
         }
-        // get the move type according to destination
-        const moveType = piece.computeMoveType(...to);
+
+        const newState = Object.assign({}, _state, copyState);
+        return new Board(newState);
+    }
+
+    this.makeMove = (src, dst) => {
+        const [x1, y1] = src;
+        const [x2, y2] = dst;
+        if (x1 === x2 && y1 === y2) {
+            throw `Source (${src}) and destination (${dst}) for a move can't be the same.`;
+        }
+
+        const srcPiece = this.getPieceAt(x1, y1);
+        const dstPiece = this.getPieceAt(x2, y2);
+        if (srcPiece === null || srcPiece === undefined) {
+            utils.warn(`There is no piece to move at (${src}).`);
+            return this;
+        }
+
+        const moveType = srcPiece.computeMoveType(this, x2, y2);
+        let newBoard = null;
         switch(moveType) {
             case MoveType.INVALID:
-                log(`Invalid move from (${...from}) to (${...to})`);
-                return this;
+                utils.info(`Invalid move from (${src}) to (${dst})`);
+                newBoard = this;
                 break;
             case MoveType.ATTACK:
+                const result = attack(srcPiece, dstPiece);
+                return this.copy({
+                    squares: removePiece(
+                        setPiece(_state.squares, result.winner, x2, y2),
+                        x1, y1)
+                });
                 break;
             case MoveType.MOVE:
-                // create new state variable using every variable EXCEPT
-                // the thing that changed (rows and columns where the piece)
-                // moved
+                newBoard = this.copy({
+                    squares: movePiece(_state.squares, src, dst)
+                });
                 break;
             case MoveType.SACRIFICE:
+                const newPiece = sacrifice(srcPiece, dstPiece);
+                newBoard = this.copy({
+                    squares: removePiece(
+                        setPiece(_state.squares, newPiece, x2, y2),
+                        x1, y1
+                    )
+                });
                 break;
+            default:
+                throw `${moveType} is not supported.`;
         }
-        // execute the method that corresponds to the move type
-        // return new board with the result
-        throw "Not implemented yet";
+
+        return newBoard;
     };
 
-    this.getPieceAt = (x,y) => {
-        return _state.squares[y][x];
-    };
+    this.getPieceAt = (x,y) => _state.squares[y][x];
 
-    this.containsPieceAt = (x, y) => {
-        return this.getPieceAt(x, y) !== null;
-    };
+    this.containsPieceAt = (x, y) => this.getPieceAt(x, y) !== null;
 
     this.isWithinBoundaries = (x, y) => {
-        throw "Not implemented yet";
+        return x >= 0 && y >= 0 &&
+            _state.squares.length > y && _state.squares[0].length > x;
     };
 
     this.setup();
