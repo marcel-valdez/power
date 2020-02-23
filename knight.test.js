@@ -1,6 +1,7 @@
 import {Knight} from './knight.js';
 import {Winner, Side, MoveType} from './power.common.js';
-import {addTest, assert, debug} from './test_framework.js';
+import {addTest, assert} from './test_framework.js';
+import utils from './utils.js';
 
 
 const TWO_SQUARE_MOVES = [
@@ -41,21 +42,6 @@ addTest(
 );
 
 addTest(
-    'Can kill Knight',
-    () => {
-        // given
-        const target = new Knight();
-        // when
-        const killed = target.kill();
-        // then
-        assert.equals(killed.isAlive, false);
-        assert.equals(killed.power, 0);
-        assert.equals(killed.x, -1);
-        assert.equals(killed.y, -1);
-    }
-);
-
-addTest(
     'Can identify ally',
     () => {
         // given
@@ -63,39 +49,8 @@ addTest(
         const ally = new Knight({side: Side.WHITE});
         // when
         const isAlly = target.isAlly(ally);
-        const isFoe = target.isFoe(ally);
         // then
         assert.equals(isAlly, true);
-        assert.equals(isFoe, false);
-    }
-);
-
-addTest(
-    'Can identify foe',
-    () => {
-        // given
-        const target = new Knight({side: Side.WHITE});
-        const foe = new Knight({side: Side.BLACK});
-        // when
-        const isFoe = target.isFoe(foe);
-        const isAlly = target.isAlly(foe);
-        // then
-        assert.equals(isFoe, true);
-        assert.equals(isAlly, false);
-    }
-);
-
-addTest(
-    'Can reduce power',
-    () => {
-        // given
-        const target = new Knight({power: 1});
-        assert.equals(target.power, 1);
-        // when
-        const weak = target.powerDown();
-        // then
-        assert.equals(target.power, 1);
-        assert.equals(weak.power, 0);
     }
 );
 
@@ -229,9 +184,9 @@ addTest(
         const board = {
             isWithinBoundaries: (x,y) => true,
             containsPieceAt: (x,y) => {
-                debug.log(`containsPieceAt(${x},${y})`);
+                utils.debug(`containsPieceAt(${x},${y})`);
                 const result = x !== state.square[0] || y !== state.square[1];
-                debug.log(`result: ${result}`);
+                utils.debug(`result: ${result}`);
                 return result;
             },
         };

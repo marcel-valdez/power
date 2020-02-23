@@ -2,24 +2,19 @@ import {Winner, MoveType, Side, PieceType} from './power.common.js';
 import {applyProps} from './pieces.js';
 import utils from './utils.js';
 
-function Knight(state = {
+const DEFAULT_STATE = Object.freeze({
     position: [0, 0], power: 0, alive: true, side: Side.WHITE
-}) {
-    const _state = Object.assign({ type: PieceType.KNIGHT }, state);
+});
+
+function Knight(state = DEFAULT_STATE) {
+    const _state = Object.freeze(
+        Object.assign({ type: PieceType.KNIGHT }, DEFAULT_STATE, state));
+
     applyProps(this, _state);
 
     this.copy = (newState) => new Knight(Object.assign({}, _state, newState));
 
-
-    this.powerDown = () => this.copy({ power: this.power - 1 });
-
-    this.powerUp = () => this.copy({ power: this.power + 1 });
-
-    this.kill = () => this.copy({ alive: false, power: 0, position: [-1, -1] });
-
     this.isAlly = (other) => this.side == other.side;
-
-    this.isFoe = (other) => !this.isAlly(other);
 
     this.computeMoveType = (board, x, y) => {
         const deltaX = Math.abs(x - this.x);

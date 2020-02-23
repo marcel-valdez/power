@@ -101,7 +101,7 @@ const assert = {
             return true;
         } else {
             throw new AssertionError(
-                assert.makeErrorMsg(actual, expected, title, 'are not equal'));
+                assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
         }
     },
     areSame: (actual, expected, title) => {
@@ -110,7 +110,7 @@ const assert = {
         } else {
             throw new AssertionError(
                 assert.makeErrorMsg(
-                    actual, expected, title, 'are not the same'));
+                    actual, expected, title, 'is not the same as'));
         }
     },
     areNotSame: (actual, expected, title) => {
@@ -118,14 +118,14 @@ const assert = {
             return true;
         } else {
             throw new AssertionError(
-                assert.makeErrorMsg(actual, expected, title, 'are the same'));
+                assert.makeErrorMsg(actual, expected, title, 'is the same as'));
         }
     },
     notNull: (actual, title) => {
         if (actual !== null && actual !== undefined) {
             return true;
         } else {
-            let msg = 'value was null, expected non-null';
+            let msg = 'value was null, expected non-null.';
             if (title) {
                 msg = `${title}\n${msg}`
             }

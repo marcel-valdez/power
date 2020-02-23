@@ -24,14 +24,12 @@ function attack(attacker, defender) {
     if (winner === Winner.ATTACKER) {
         return {
             result: winner,
-            attacker: attacker.reducePower(),
-            defender: defender.kill(),
+            winner: attacker.copy({ power: attacker.power - 1 }),
         }
     } else {
         return {
             result: winner,
-            attacker: attacker.kill(),
-            defender: defender.reducePower(),
+            winner: defender.copy({ power: defender.power - 1 }),
         }
     }
 }
@@ -52,11 +50,8 @@ function determineWinner(attackPower, defendPower) {
 }
 
 function computeWinOdds(attackPower, defendPower) {
-    let odds = 0.5;
-    const delta = Math.abs(attackPower - defendPower);
-    for (const i = 0; i < delta; i++) {
-        odds = odds / 2;
-    }
+    const delta = 1 + Math.abs(attackPower - defendPower);
+    const odds = 1 / (2**delta);
 
     if (attackPower >= defendPower) {
         return 1 - odds;
@@ -66,15 +61,33 @@ function computeWinOdds(attackPower, defendPower) {
 }
 
 function realizeOdds(winOdds) {
-    return getRandomNumber(1, 10000) <= winOdds * 10000;
+    return Math.random() < winOdds;
 }
 
+function computeSacrificePower(ownerPower, sacrificePower) {
+    if (ownerPower < 0) {
+        if (ownerPower > sacrificePower) {
+            return ownerPower;
+        } else if (ownerPower === sacrificePower) {
+            return ownerPower + 1;
+        } else {
+            return ownerPower + (sacrificePower - ownerPower);
+        }
+    } else {
+        if (sacrificePower < 0) {
+            return ownerPower;
+        } else {
+            return ownerPower + sacrificePower + 1;
+        }
+    }
+}
+
+function promotePawn() {
+    // TODO: Implement pawn promotion
+}
 
 function sacrifice(owner, sacrificed) {
-    return {
-        owner: owner.copy({ power: owner.power + sacrificed.power }),
-        sacrificed: sacrificed.kill(),
-    };
+    return owner.copy({ power: computeSacrificePower(owner.power, sacrificed.power) });
 }
 
 function setPiece(rows, newPiece, x, y) {
@@ -112,7 +125,7 @@ function movePiece(squares, src, dst) {
 }
 
 function Board(state = { squares: EMPTY_BOARD}) {
-    const _state = Object.assign({}, state);
+    const _state = Object.freeze(Object.assign({}, state));
 
     this.setup = () => {
         // NO-OP for now
@@ -178,6 +191,18 @@ function Board(state = { squares: EMPTY_BOARD}) {
         return newBoard;
     };
 
+    this.getRow = (rowIdx) => {
+        if (rowIdx < 0 || rowIdx > _state.squares.length) {
+            throw `Row indices can only be values 0-7. Got: ${rowIdx}.`;
+        }
+
+        return Object.freeze(_state.squares[rowIdx]);
+    };
+
+    this.getRows = () => {
+        return Object.freeze(_state.squares);
+    };
+
     this.getPieceAt = (x,y) => _state.squares[y][x];
 
     this.containsPieceAt = (x, y) => this.getPieceAt(x, y) !== null;
@@ -191,4 +216,4 @@ function Board(state = { squares: EMPTY_BOARD}) {
     return this;
 }
 
-export { Board };
+export { Board, computeWinOdds, computeSacrificePower };
