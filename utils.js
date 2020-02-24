@@ -2,7 +2,7 @@
 let DEBUG = false;
 
 const enableDebug = () => {
-    DEBUG = true;
+  DEBUG = true;
 };
 
 const log = (msg) => console && console.log(msg);
@@ -13,10 +13,10 @@ const error = (msg) => log('ERROR: ' + msg);
 
 
 export default {
-    enableDebug,
-    debug,
-    info,
-    warn,
-    error,
-    log
+  enableDebug,
+  debug,
+  info,
+  warn,
+  error,
+  log
 }

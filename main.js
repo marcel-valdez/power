@@ -116,12 +116,12 @@ export class RowUi extends Component {
     const [dstX = -1, dstY = -1] = markedDst || [];
     return html`<tr class='power-row'>${
       row.map((piece = null, colIdx = 0) => html`<${CellUi}
-        rowIdx=${rowIdx}
-        colIdx=${colIdx}
-        piece=${piece}
-        isSrcPiece=${colIdx === srcX && rowIdx === srcY}
-        isDstPiece=${colIdx === dstX && rowIdx === dstY}
-        onClick=${() => onClickPiece([colIdx, rowIdx])}
+    rowIdx=${rowIdx}
+    colIdx=${colIdx}
+    piece=${piece}
+    isSrcPiece=${colIdx === srcX && rowIdx === srcY}
+    isDstPiece=${colIdx === dstX && rowIdx === dstY}
+    onClick=${() => onClickPiece([colIdx, rowIdx])}
       />`)
     }</tr>`;
   }

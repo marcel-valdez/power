@@ -1,31 +1,31 @@
 
 const Winner = Object.freeze({
-    ATTACKER: 'ATTACKER',
-    DEFENDER: 'DEFENDER',
+  ATTACKER: 'ATTACKER',
+  DEFENDER: 'DEFENDER',
 });
 
 const MoveType = Object.freeze({
-    MOVE: 'MOVE',
-    ATTACK: 'ATTACK',
-    INVALID: 'INVALID',
-    SACRIFICE: 'SACRIFICE',
+  MOVE: 'MOVE',
+  ATTACK: 'ATTACK',
+  INVALID: 'INVALID',
+  SACRIFICE: 'SACRIFICE',
 });
 
 const Side = Object.freeze({
-    WHITE: 'WHITE',
-    BLACK: 'BLACK',
+  WHITE: 'WHITE',
+  BLACK: 'BLACK',
 });
 
 const PieceType = Object.freeze({
-    PAWN: 'PAWN',
-    KNIGHT: 'KNIGHT',
-    ROOK: 'ROOK',
-    KING: 'KING',
+  PAWN: 'PAWN',
+  KNIGHT: 'KNIGHT',
+  ROOK: 'ROOK',
+  KING: 'KING',
 });
 
 export {
-    Winner,
-    MoveType,
-    Side,
-    PieceType,
+  Winner,
+  MoveType,
+  Side,
+  PieceType,
 };
