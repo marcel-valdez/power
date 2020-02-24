@@ -1,0 +1,56 @@
+body {
+  height: 100%;
+}
+
+#power {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.power-table {
+  border-width: 4px;
+  border-style: groove;
+}
+
+.power-table .power-row {
+}
+
+.power-table .power-row .empty {
+}
+
+.power-table .power-row .knight {
+  font-size: 40pt;
+  text-align: center;
+}
+
+.power-table .power-row .square {
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  width: 80px;
+  height: 80px;
+}
+
+.power-table .power-row .white-square {
+
+}
+
+.power-table .power-row .black-square {
+  background-color: gray;
+}
+
+.power-table .power-row .white-piece {
+}
+
+.power-table .power-row .black-piece {
+}
+
+.power-table .power-row .src-piece {
+  border-color: blue;
+}
+
+
+.power-table .power-row .dst-piece {
+  border-color: red;
+}
