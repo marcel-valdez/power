@@ -12,12 +12,18 @@ It has some similarities to chess, except when you "kill" a piece there is a pro
   - If a weak piece attacks an equally weak or strong piece, then the odds of beating each other is 50%.
   - If a weak piece is attacked (or attacks) a healthy enemy piece, then it has 25% chance of winning the battle.
     - If the weak piece survives and attacks yet again, it will have 12.5% chance of winning another battle against another healthy enemy.
-- **Sacrifice**: A piece can sacrifice an ally to make itself stronger in battles, this takes up a turn and the sacrificed piece goes away. The King can't sacrifice anyone.
-  - If a weak piece sacrifices an ally to make itself healthy, it will again have 50% chance of beating a healthy enemy.
-  - If a healthy piece sacrifices an ally to make itself strong, it will have 75% chance of beating a healthy enemy.
-    - If the strong piece survives the battle, it will go back to having 50% chance of beating a healthy enemy.
-  - If a strong piece sacrifices yet another ally, it will have 87.5% chance of beating a healthy enemy.
-    - If the stronger piece survives the battle, it will go back to having 75% chance of beating a healthy enemy.
+- **Sacrifice**: A piece can sacrifice an ally to make itself stronger in battles, this takes up a
+turn and the sacrificed piece goes away. The King can't sacrifice anyone.
+  - If a weak piece sacrifices an ally to make itself healthy, it will again have 50% chance of
+  beating a healthy enemy.
+  - If a healthy piece sacrifices an ally to make itself strong, it will have 75% chance of beating
+  a healthy enemy.
+    - If the strong piece survives the battle, it will go back to having 50% chance of beating a
+    healthy enemy.
+  - If a strong piece sacrifices yet another ally, it will have 87.5% chance of beating a healthy
+  enemy.
+    - If the stronger piece survives the battle, it will go back to having 75% chance of beating a
+    healthy enemy.
     - If the stronger piece attacks a strong piece, it will have 75% chance of beating it.
     - If the stronger piece attacks a weak piece, it will have 93.75% chance of beating it.
     - And so forth...
@@ -25,8 +31,12 @@ It has some similarities to chess, except when you "kill" a piece there is a pro
 ## Pieces
 
 - **Pawn**:
-  - It can move forwards any number of squares.
-  - It can only attack an enemy that is directly next to it in diagonal.
+  - It can move forwards 1 or 2 of squares.
+  - It can only attack an enemy that is directly next to it in a front diagonal.
+    - If it passes an enemy pawn when moving 2 squares, the enemy pawn can attack it "en passant",
+    meaning the enemy can attack the pawn as if it had only moved 1 square forwards, if the enemy
+    wins the battle, then the enemy moves 1 square diagonally forwards as if it had done a normal
+    attack.
   - It can only sacrifice an ally that is directly next to it in diagonal.
   - If it reaches the other end of the board, it can be converted into a Knight or Rook.
 

@@ -1,6 +1,6 @@
-import {Winner, PieceType, MoveType, Side} from './power.common.js';
-import utils from './utils.js';
-import {Knight} from './knight.js';
+import {Winner, PieceType, MoveType, Side} from './power.common.mjs';
+import utils from './utils.mjs';
+import {Knight} from './knight.mjs';
 
 const STARTING_BOARD = Object.freeze([
   [
@@ -95,7 +95,9 @@ function promotePawn() {
 }
 
 function sacrifice(owner, sacrificed) {
-  return owner.copy({ power: computeSacrificePower(owner.power, sacrificed.power) });
+  return owner.copy({
+    power: computeSacrificePower(owner.power, sacrificed.power)
+  });
 }
 
 function setPiece(rows, newPiece, x, y) {
@@ -128,17 +130,30 @@ function movePiece(squares, src, dst) {
 
   const pickedupPieceSquares = removePiece(squares, x1, y1);
   const movedPiece = srcPiece.copy({ position: dst });
-  const droppedPieceSquares = setPiece(pickedupPieceSquares, movedPiece, x2, y2);
-  return droppedPieceSquares;
+  const droppedPieceSquares =
+        setPiece(pickedupPieceSquares, movedPiece, x2, y2);
+
+  let enPassant = null;
+  if (movedPiece.type === PieceType.PAWN && Math.abs(y1 - y2) == 2) {
+    enPassant = movedPiece;
+  }
+
+  return {
+    squares: droppedPieceSquares,
+    enPassant: movedPiece
+  };
 }
 
-function Board(state = { squares: STARTING_BOARD}) {
+function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
   const _state = Object.freeze(Object.assign({}, state));
 
   this.setup = () => {
     // NO-OP for now
   };
 
+  Object.defineProperty(this, 'enPassant', {
+    get() { return _state.enPassant; }
+  });
 
   this.copy = (copyState = null) => {
     if (copyState === null) {
@@ -164,39 +179,33 @@ function Board(state = { squares: STARTING_BOARD}) {
     }
 
     const moveType = srcPiece.computeMoveType(this, x2, y2);
-    let newBoard = null;
     switch(moveType) {
     case MoveType.INVALID:
       utils.info(`Invalid move from (${src}) to (${dst})`);
-      newBoard = this;
-      break;
+      return this;
     case MoveType.ATTACK:
       const result = attack(srcPiece, dstPiece);
       return this.copy({
         squares: removePiece(
           setPiece(_state.squares, result.winner, x2, y2),
-          x1, y1)
+          x1, y1),
+        enPassant: null
       });
-      break;
     case MoveType.MOVE:
-      newBoard = this.copy({
-        squares: movePiece(_state.squares, src, dst)
-      });
-      break;
+      const { squares, enPassant } = movePiece(_state.squares, src, dst)
+      return this.copy({ squares, enPassant });
     case MoveType.SACRIFICE:
       const newPiece = sacrifice(srcPiece, dstPiece);
-      newBoard = this.copy({
+      return this.copy({
         squares: removePiece(
           setPiece(_state.squares, newPiece, x2, y2),
           x1, y1
-        )
+        ),
+        enPassant: null
       });
-      break;
     default:
       throw `${moveType} is not supported.`;
     }
-
-    return newBoard;
   };
 
   this.getRow = (rowIdx) => {

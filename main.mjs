@@ -2,8 +2,8 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {Board} from './board.js';
-import {PieceType, Side} from './power.common.js'
+import {Board} from './board.mjs';
+import {PieceType, Side} from './power.common.mjs'
 
 // Initialize htm with Preact
 const html = htm.bind(h);
@@ -114,16 +114,16 @@ export class RowUi extends Component {
     { }) {
     const [srcX = -1, srcY = -1] = markedSrc || [];
     const [dstX = -1, dstY = -1] = markedDst || [];
-    return html`<tr class='power-row'>${
-      row.map((piece = null, colIdx = 0) => html`<${CellUi}
+    const pieces = row.map((piece = null, colIdx = 0) => html`<${CellUi}
     rowIdx=${rowIdx}
     colIdx=${colIdx}
     piece=${piece}
     isSrcPiece=${colIdx === srcX && rowIdx === srcY}
     isDstPiece=${colIdx === dstX && rowIdx === dstY}
     onClick=${() => onClickPiece([colIdx, rowIdx])}
-      />`)
-    }</tr>`;
+      />`);
+
+    return html`<tr class='power-row'>${pieces}</tr>`;
   }
 }
 

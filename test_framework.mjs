@@ -1,4 +1,4 @@
-import utils from './utils.js';
+import utils from './utils.mjs';
 
 const isBrowser = typeof document !== 'undefined';
 
@@ -61,30 +61,47 @@ const addTest = (title, testFn) => {
 };
 
 const reportResult = (title = '', result, error = '') => {
-  let msg = `${title}:`;
-  msg += ` ${result}`;
-  if (error) msg += `\n${error}`
-
-  utils.log(msg);
-  write(msg);
+  if (error) {
+    utils.log(`${title}: ${result}\n${error.stack}`);
+    write(`${title} <font color="red">${result}</font><br/>${error.stack}`);
+  } else {
+    utils.log(`${title}: ${result}`);
+    write(`${title} <font color="green">${result}</font>`);
+  }
 };
 
+function runTest(test = { testFn: () => {}, title: '' }) {
+  try {
+    test.testFn();
+    reportResult(test.title, "PASS");
+    return { passed: true, error: null };
+  } catch (error) {
+    if (error instanceof AssertionError) {
+      reportResult(test.title, "FAIL", error);
+    } else {
+      reportResult(test.title, "EXCEPTION", error);
+    }
+
+    return { pass: false, error };
+  }
+}
+
 async function runTests() {
+  let passed_count = 0;
+  let fail_count = 0;
   utils.debug("Waiting for tests...");
   const tests = await getTests();
   utils.log("Running all tests.");
-  while (tests.length > 0) {
-    const test = tests.shift();
-    try {
-      test.testFn();
-      reportResult(test.title, "PASS");
-    } catch (error) {
-      if (error instanceof AssertionError) {
-        reportResult(test.title, "FAIL", error);
-      } else {
-        throw error;
-      }
+  try {
+    while (tests.length > 0) {
+      const result = runTest(tests.shift());
+      if (result.passed) { passed_count++; }
+      else { fail_count++; }
     }
+  } finally {
+    let total_count = Math.max(tests.length, passed_count + fail_count);
+    write(`PASSED: ${passed_count}/${total_count}`);
+    write(`FAILED: ${fail_count}/${total_count}`);
   }
 };
 

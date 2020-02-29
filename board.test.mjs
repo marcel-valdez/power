@@ -2,11 +2,11 @@ import {
   Board,
   computeWinOdds,
   computeSacrificePower
-} from './board.js';
-import {Knight} from './knight.js';
-import {PieceType, Side} from './power.common.js'
-import {addTest, assert} from './test_framework.js';
-import utils from './utils.js';
+} from './board.mjs';
+import {Knight} from './knight.mjs';
+import {PieceType, Side} from './power.common.mjs'
+import {addTest, assert} from './test_framework.mjs';
+import utils from './utils.mjs';
 
 
 addTest('Can create board', () => {

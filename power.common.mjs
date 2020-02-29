@@ -9,6 +9,8 @@ const MoveType = Object.freeze({
   ATTACK: 'ATTACK',
   INVALID: 'INVALID',
   SACRIFICE: 'SACRIFICE',
+  PROMOTION: 'PROMOTION',
+  EN_PASSANT_ATTACK: 'EN_PASSANT_ATTACK',
 });
 
 const Side = Object.freeze({

@@ -1,7 +1,7 @@
-import {Knight} from './knight.js';
-import {Winner, Side, MoveType} from './power.common.js';
-import {addTest, assert} from './test_framework.js';
-import utils from './utils.js';
+import {Knight} from './knight.mjs';
+import {Winner, Side, MoveType} from './power.common.mjs';
+import {addTest, assert} from './test_framework.mjs';
+import utils from './utils.mjs';
 
 
 const TWO_SQUARE_MOVES = [
@@ -148,9 +148,9 @@ addTest(
       containsPieceAt: (x,y) => false,
     };
     // when
-    // then
     ONE_SQUARE_MOVES.forEach(([x, y]) => assert.equals(
-      target.computeMoveType(board, x, y),
+      target.computeMoveType(board, 3, 4),
+    // then
       MoveType.MOVE,
       `Move from (3,3) to (${x}, ${y})`
     ));

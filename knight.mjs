@@ -1,6 +1,6 @@
-import {Winner, MoveType, Side, PieceType} from './power.common.js';
-import {applyProps} from './pieces.js';
-import utils from './utils.js';
+import {Winner, MoveType, Side, PieceType} from './power.common.mjs';
+import {applyProps} from './pieces.mjs';
+import utils from './utils.mjs';
 
 const DEFAULT_STATE = Object.freeze({
   position: [0, 0], power: 0, alive: true, side: Side.WHITE
