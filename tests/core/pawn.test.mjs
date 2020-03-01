@@ -1,7 +1,7 @@
-import {Pawn} from './pawn.mjs';
-import {Winner, Side, MoveType} from './power.common.mjs';
-import {addTest, assert} from './test_framework.mjs';
-import utils from './utils.mjs';
+import {Pawn} from '../../core/pawn.mjs';
+import {Winner, Side, MoveType} from '../../core/power.common.mjs';
+import {addTest, assert} from '../../tests/test_framework.mjs';
+import utils from '../../core/utils.mjs';
 
 addTest(
   'Can create Pawn',
@@ -13,7 +13,7 @@ addTest(
     assert.equals(target.x, 0);
     assert.equals(target.y, 0);
     assert.equals(target.isAlive, true);
-    assert.equals(target.power, 0)
+    assert.equals(target.power, 0);
     assert.equals(target.side, Side.WHITE);
   });
 
@@ -49,7 +49,7 @@ addTest(
     const target = new Pawn({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => false,
-      containsPieceAt: (x,y) => false,
+      containsPieceAt: (x,y) => false
     };
 
     assert.equals(
@@ -83,7 +83,7 @@ addTest(
     const target = new Pawn({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x, y) => false,
+      containsPieceAt: (x, y) => false
     };
 
     assert.equals(
@@ -106,7 +106,7 @@ addTest(
     const target = new Pawn({position: [3,3], side: Side.BLACK});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x, y) => false,
+      containsPieceAt: (x, y) => false
     };
 
     assert.equals(
@@ -129,7 +129,7 @@ addTest(
     const target = new Pawn({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      containsPieceAt: (x,y) => false
     };
 
     assert.equals(
@@ -152,7 +152,7 @@ addTest(
     const target = new Pawn({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      containsPieceAt: (x,y) => false
     };
     assert.equals(
       // when
@@ -173,7 +173,7 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: (x,y) => true
     };
     // when
     // then
@@ -190,7 +190,7 @@ addTest(
       target.computeMoveType(board, x, y),
       MoveType.INVALID,
       `Move from (3,3) to (${x}, ${y})`
-    ))
+    ));
   });
 
 addTest(
@@ -200,7 +200,7 @@ addTest(
     const target = new Pawn({position: [3,3], side: Side.WHITE});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      containsPieceAt: (x,y) => false
     };
 
     [
@@ -225,7 +225,7 @@ addTest(
     const target = new Pawn({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
+      containsPieceAt: (x,y) => true
     };
     // when
     const moveType = target.computeMoveType(board, 3, 2);
@@ -243,7 +243,7 @@ addTest(
       // when
       target.computeMoveType({
         isWithinBoundaries: (x,y) => true,
-        containsPieceAt: (x,y) => x == 3 && y == 2,
+        containsPieceAt: (x,y) => x == 3 && y == 2
       }, 3, 1),
       // then
       MoveType.INVALID);
@@ -252,7 +252,7 @@ addTest(
       // when
       target.computeMoveType({
         isWithinBoundaries: (x,y) => true,
-        containsPieceAt: (x,y) => x == 3 && y == 1,
+        containsPieceAt: (x,y) => x == 3 && y == 1
       }, 3, 1),
       // then
       MoveType.INVALID);
@@ -369,7 +369,7 @@ addTest(
     const target = new Pawn({position: [1,1]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      containsPieceAt: (x,y) => false
     };
     assert.equals(
       // when
@@ -411,4 +411,22 @@ addTest(
       // then
       MoveType.EN_PASSANT_ATTACK);
   });
-// TODO: Handle attack promotion move.
+
+addTest(
+  'Can identify a promotion attack',
+  () => {
+    // given
+    const target = new Pawn({position: [3,1], side: Side.WHITE});
+    const board = {
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x,y) => x == 4 && y == 0,
+      getPieceAt: (x,y) => new Pawn({side: Side.BLACK})
+    };
+
+    assert.equals(
+      // when
+      target.computeMoveType(board, 4, 0),
+      // then
+      MoveType.PROMOTION_ATTACK
+    );
+  });

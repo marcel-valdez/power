@@ -1,6 +1,7 @@
-import {Winner, PieceType, MoveType, Side} from './power.common.mjs';
-import utils from './utils.mjs';
-import {Knight} from './knight.mjs';
+import {Winner, PieceType, MoveType, Side} from '../core/power.common.mjs';
+import utils from '../core/utils.mjs';
+import {Knight} from '../core/knight.mjs';
+import {Pawn} from '../core/pawn.mjs';
 
 const STARTING_BOARD = Object.freeze([
   [
@@ -10,12 +11,24 @@ const STARTING_BOARD = Object.freeze([
     new Knight({ position: [3, 0], side: Side.BLACK }),
     null
   ],
+  [
+    new Pawn({ position: [0, 1], side: Side.BLACK }),
+    new Pawn({ position: [1, 1], side: Side.BLACK }),
+    new Pawn({ position: [2, 1], side: Side.BLACK }),
+    new Pawn({ position: [3, 1], side: Side.BLACK }),
+    new Pawn({ position: [4, 1], side: Side.BLACK }),
+  ],
   [null, null, null, null, null],
   [null, null, null, null, null],
   [null, null, null, null, null],
   [null, null, null, null, null],
-  [null, null, null, null, null],
-  [null, null, null, null, null],
+  [
+    new Pawn({ position: [0, 6], side: Side.WHITE }),
+    new Pawn({ position: [1, 6], side: Side.WHITE }),
+    new Pawn({ position: [2, 6], side: Side.WHITE }),
+    new Pawn({ position: [3, 6], side: Side.WHITE }),
+    new Pawn({ position: [4, 6], side: Side.WHITE }),
+  ],
   [
     null,
     new Knight({ position: [1, 7], side: Side.WHITE }),
@@ -38,12 +51,15 @@ function attack(attacker, defender) {
   if (winner === Winner.ATTACKER) {
     return {
       result: winner,
-      winner: attacker.copy({ power: attacker.power - 1 }),
+      winner: attacker.copy({
+        power: attacker.power - 1,
+        position: defender.position
+      })
     };
   } else {
     return {
       result: winner,
-      winner: defender.copy({ power: defender.power - 1 }),
+      winner: defender.copy({ power: defender.power - 1 })
     };
   }
 }
@@ -101,11 +117,15 @@ function sacrifice(owner, sacrificed) {
 }
 
 function setPiece(rows, newPiece, x, y) {
-  return rows.map((row, rowIdx) => {
-    if (rowIdx === y) {
-      return row.map((cell, colIdx) => {
-        if (colIdx === x) {
-          return newPiece;
+  return rows.map((row, _y) => {
+    if (_y === y) {
+      return row.map((cell, _x) => {
+        if (_x === x) {
+          if (newPiece == null) {
+            return null;
+          } else {
+            return newPiece.copy({ position: [_x, _y] });
+          }
         } else {
           return cell;
         }
@@ -162,7 +182,73 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
 
     const newState = Object.assign({}, _state, copyState);
     return new Board(newState);
-  }
+  };
+
+  const doMove = (src, dst) => {
+    const { squares, enPassant } = movePiece(_state.squares, src, dst);
+    return this.copy({ squares, enPassant });
+  };
+
+  const doAttack = (src, dst) => {
+    const [x1, y1] = src;
+    const [x2, y2] = dst;
+    const srcPiece = this.getPieceAt(x1, y1);
+    const dstPiece = this.getPieceAt(x2, y2);
+    const result = attack(srcPiece, dstPiece);
+      return this.copy({
+        // remove piece from src
+        squares: removePiece(
+          // set winner piece at dst
+          setPiece(_state.squares, result.winner, x2, y2),
+          x1, y1),
+        enPassant: null
+      });
+  };
+
+  const doSacrifice = (src, dst) => {
+    const [x1, y1] = src;
+    const [x2, y2] = dst;
+    const srcPiece = this.getPieceAt(x1, y1);
+    const dstPiece = this.getPieceAt(x2, y2);
+    const newPiece = sacrifice(srcPiece, dstPiece);
+      return this.copy({
+        squares: removePiece(
+          setPiece(_state.squares, newPiece, x2, y2),
+          x1, y1
+        ),
+        enPassant: null
+      });
+  };
+
+  const doEnPassant = (src, dst) => {
+    // HERE BE DRAGONS: UNTESTED CODE
+    const [x1, y1] = src;
+    const [x2, y2] = dst;
+    const srcPiece = this.getPieceAt(x1, y1);
+    const dstPiece = this.getPieceAt(x2, y2);
+    const { result, winner } = attack(srcPiece, this.enPassant);
+    let squares = null;
+    if (result === Winner.ATTACKER) {
+      // move attacking pawn
+      squares = setPiece(
+        removePiece(
+          // kill en passant pawn
+          removePiece(_state.squares, this.enPassant.x, this.enPassant.y),
+          x1, y1),
+        winner,
+        x2, y2);
+    } else {
+      squares = setPiece(
+        removePiece(_state.squares, x1, y1),
+        winner,
+        this.enPassant.x, this.enPassant.y);
+    }
+
+    return this.copy({
+      squares,
+      enPassant: null
+    });
+  };
 
   this.makeMove = (src, dst) => {
     const [x1, y1] = src;
@@ -184,25 +270,13 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
       utils.info(`Invalid move from (${src}) to (${dst})`);
       return this;
     case MoveType.ATTACK:
-      const result = attack(srcPiece, dstPiece);
-      return this.copy({
-        squares: removePiece(
-          setPiece(_state.squares, result.winner, x2, y2),
-          x1, y1),
-        enPassant: null
-      });
+      return doAttack(src, dst);
     case MoveType.MOVE:
-      const { squares, enPassant } = movePiece(_state.squares, src, dst)
-      return this.copy({ squares, enPassant });
+      return doMove(src, dst);
     case MoveType.SACRIFICE:
-      const newPiece = sacrifice(srcPiece, dstPiece);
-      return this.copy({
-        squares: removePiece(
-          setPiece(_state.squares, newPiece, x2, y2),
-          x1, y1
-        ),
-        enPassant: null
-      });
+      return doSacrifice(src, dst);
+    case MoveType.EN_PASSANT_ATTACK:
+      return doEnPassant(src, dst);
     default:
       throw `${moveType} is not supported.`;
     }
@@ -216,18 +290,14 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
     return Object.freeze(_state.squares[rowIdx]);
   };
 
-  this.getRows = () => {
-    return Object.freeze(_state.squares);
-  };
+  this.getRows = () => Object.freeze(_state.squares);
 
   this.getPieceAt = (x,y) => _state.squares[y][x];
 
   this.containsPieceAt = (x, y) => this.getPieceAt(x, y) !== null;
 
-  this.isWithinBoundaries = (x, y) => {
-    return x >= 0 && y >= 0 &&
-      _state.squares.length > y && _state.squares[0].length > x;
-  };
+  this.isWithinBoundaries = (x, y) => x >= 0 && y >= 0 &&
+    _state.squares.length > y && _state.squares[0].length > x;
 
   this.setup();
   return this;

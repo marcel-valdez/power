@@ -1,7 +1,6 @@
-
 const Winner = Object.freeze({
   ATTACKER: 'ATTACKER',
-  DEFENDER: 'DEFENDER',
+  DEFENDER: 'DEFENDER'
 });
 
 const MoveType = Object.freeze({
@@ -11,18 +10,19 @@ const MoveType = Object.freeze({
   SACRIFICE: 'SACRIFICE',
   PROMOTION: 'PROMOTION',
   EN_PASSANT_ATTACK: 'EN_PASSANT_ATTACK',
+  PROMOTION_ATTACK: 'PROMOTION_ATTACK'
 });
 
 const Side = Object.freeze({
   WHITE: 'WHITE',
-  BLACK: 'BLACK',
+  BLACK: 'BLACK'
 });
 
 const PieceType = Object.freeze({
   PAWN: 'PAWN',
   KNIGHT: 'KNIGHT',
   ROOK: 'ROOK',
-  KING: 'KING',
+  KING: 'KING'
 });
 
 export {

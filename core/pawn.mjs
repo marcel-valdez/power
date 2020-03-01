@@ -1,6 +1,6 @@
-import {Winner, MoveType, Side, PieceType} from './power.common.mjs';
-import {applyProps} from './pieces.mjs';
-import utils from './utils.mjs';
+import {Winner, MoveType, Side, PieceType} from '../core/power.common.mjs';
+import {applyProps} from '../core/pieces.mjs';
+import utils from '../core/utils.mjs';
 
 const DEFAULT_STATE = Object.freeze({
   position: [0, 0], power: 0, alive: true, side: Side.WHITE
@@ -12,15 +12,16 @@ function Pawn(state = DEFAULT_STATE) {
 
   applyProps(this, _state);
 
-  this.copy = (newState) => new Pawn(Object.assign({}, _state, newState));
+  this.copy = (newState) => {
+    return new Pawn(Object.assign({}, _state, newState));
+  };
 
-  this.isAlly = (other) => this.side == other.side;
+  this.isAlly = (other) => this.side === other.side;
 
   this.isFoe = (other) => !this.isAlly(other);
 
   const handleDiagonalMove = (board, x, y) => {
     if (!board.containsPieceAt(x, y)) {
-      // TODO: Handle en-passant move.
       const enPassant = board.enPassant;
       const boardHasEnPassant = enPassant && this.isFoe(enPassant);
       if (boardHasEnPassant) {
@@ -38,8 +39,11 @@ function Pawn(state = DEFAULT_STATE) {
       if (this.isAlly(piece)) {
         return MoveType.SACRIFICE;
       } else {
-        // TODO: Handle the case where attacking leads to a promotion.
-        return MoveType.ATTACK;
+        if (y === 0) {
+          return MoveType.PROMOTION_ATTACK;
+        } else {
+          return MoveType.ATTACK;
+        }
       }
     }
   };
@@ -58,13 +62,13 @@ function Pawn(state = DEFAULT_STATE) {
       return true;
     }
 
-    if ((this.side == Side.WHITE && y > this.y) ||
-        (this.side == Side.BLACK && y < this.y)) {
+    if ((this.side === Side.WHITE && y > this.y) ||
+        (this.side === Side.BLACK && y < this.y)) {
       utils.warn('Illegal move: Tried to move Pawn backwards.');
       return true;
     }
 
-    if (deltaX > 0 && deltaY == 0) {
+    if (deltaX > 0 && deltaY === 0) {
       utils.warn('Illegal move: Tried to move Pawn sideways.');
       return true;
     }
@@ -79,34 +83,34 @@ function Pawn(state = DEFAULT_STATE) {
       return true;
     }
 
-
-    if ((deltaX == 1 && deltaY == 2) || (deltaY == 1 && deltaX == 2)) {
-      utils.warn('L moves not allowed for Pawns.');
+    if (deltaX === 1 && deltaY >= 2) {
+      utils.warn('Pawns cannot move in L patterns.');
       return true; // L moves not allowed
     }
 
     return false;
-  }
+  };
 
   const handleForwardsMove = (board, x, y) => {
     const deltaX = Math.abs(x - this.x);
     const deltaY = Math.abs(y - this.y);
 
     if (deltaY === 2) {
-      if ((this.side == Side.WHITE && board.containsPieceAt(x, y + 1)) ||
-          (this.side == Side.BLACK && board.containsPieceAt(x, y - 1))) {
+      if ((this.side === Side.WHITE && board.containsPieceAt(x, y + 1)) ||
+          (this.side === Side.BLACK && board.containsPieceAt(x, y - 1))) {
         utils.warn('Pawns cannot skip pieces');
         return MoveType.INVALID;
       }
     }
 
-    if (deltaY >= 1) { // Single square moveType.
+    // Single square moveType.
+    if (deltaY >= 1) {
       if (board.containsPieceAt(x, y)) {
         utils.warn('Pawns cannot attack immediate squares.');
         return MoveType.INVALID; // Cannot attack immediate squares.
       } else {
         if ((this.side === Side.WHITE && y === 0) ||
-            (this.side === Side.BLACK && y == 7)) {
+            (this.side === Side.BLACK && y === 7)) {
           return MoveType.PROMOTION;
         } else {
           return MoveType.MOVE;
@@ -114,7 +118,8 @@ function Pawn(state = DEFAULT_STATE) {
       }
     }
 
-    utils.warn(`Illegal pawn move from (${this.x},${this.y}) to (${x},${y}).`);
+    utils.warn(
+      `Illegal pawn move from (${this.x},${this.y}) to (${x},${y}).`);
     return MoveType.INVALID;
   };
 
@@ -126,7 +131,7 @@ function Pawn(state = DEFAULT_STATE) {
       return MoveType.INVALID;
     }
 
-    if (deltaX == 1 && deltaY == 1) {
+    if (deltaX === 1 && deltaY === 1) {
       return handleDiagonalMove(board, x, y);
     }
 
@@ -137,4 +142,3 @@ function Pawn(state = DEFAULT_STATE) {
 }
 
 export { Pawn };
-

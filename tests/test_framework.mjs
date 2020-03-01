@@ -1,4 +1,4 @@
-import utils from './utils.mjs';
+import utils from '../core/utils.mjs';
 
 const isBrowser = typeof document !== 'undefined';
 
@@ -19,14 +19,15 @@ const write = (msg) => {
 function docReady(fn) {
   // see if DOM is already available
   if (isBrowser) {
-    if (document.readyState === "complete" || document.readyState === "interactive") {
+    if (document.readyState === "complete" ||
+        document.readyState === "interactive") {
       // call on next available tick
       setTimeout(fn, 1);
     } else {
       document.addEventListener("DOMContentLoaded", fn);
     }
   } else {
-    setTimeout(fn(), 1);
+    setTimeout(fn, 1);
   }
 }
 
@@ -37,9 +38,9 @@ const testsPromise = new Promise((resolve, reject) => {
     if(tests.length > 0) {
       resolve(tests);
     } else {
-      setTimeout(10, () => loopWait());
+      setTimeout(() => loopWait(), 10);
     }
-  }
+  };
 
   loopWait();
 });
@@ -86,30 +87,49 @@ function runTest(test = { testFn: () => {}, title: '' }) {
   }
 }
 
+function processResults(
+  results = { fail_count: 0, pass_count: 0 }) {
+
+  const { pass_count, fail_count } = results;
+  const total_count = pass_count + fail_count;
+  const resultMsg = `PASSED: ${pass_count}/${total_count}\n`
+        + `FAILED: ${fail_count}/${total_count}`;
+  utils.info(resultMsg);
+  write(resultMsg);
+}
+
 async function runTests() {
-  let passed_count = 0;
+  let pass_count = 0;
   let fail_count = 0;
   utils.debug("Waiting for tests...");
   const tests = await getTests();
-  utils.log("Running all tests.");
+  utils.log("Running tests.");
   try {
     while (tests.length > 0) {
       const result = runTest(tests.shift());
-      if (result.passed) { passed_count++; }
+      if (result.passed) { pass_count++; }
       else { fail_count++; }
     }
   } finally {
-    let total_count = Math.max(tests.length, passed_count + fail_count);
-    write(`PASSED: ${passed_count}/${total_count}`);
-    write(`FAILED: ${fail_count}/${total_count}`);
+    processResults({
+      fail_count,
+      pass_count
+    });
+    if (!(typeof process === 'undefined')) {
+      if (fail_count > 0) {
+        process.exit(1);
+      } else {
+        process.exit(0);
+      }
+    }
   }
-};
+}
 
 const assert = {
   makeErrorMsg: (actual, expected, title, diffMsg) => {
     let msg = `${actual} ${diffMsg} ${expected}`;
     if (title) {
-      msg = `${title}\n${msg}`
+      msg = `${title}\n${msg}`;
     }
     return msg;
   },
@@ -144,7 +164,7 @@ const assert = {
     } else {
       let msg = 'value was null, expected non-null.';
       if (title) {
-        msg = `${title}\n${msg}`
+        msg = `${title}\n${msg}`;
       }
       throw msg;
     }

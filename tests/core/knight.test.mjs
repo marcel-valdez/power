@@ -1,7 +1,7 @@
-import {Knight} from './knight.mjs';
-import {Winner, Side, MoveType} from './power.common.mjs';
-import {addTest, assert} from './test_framework.mjs';
-import utils from './utils.mjs';
+import {Knight} from '../../core/knight.mjs';
+import {Winner, Side, MoveType} from '../../core/power.common.mjs';
+import {addTest, assert} from '../../tests/test_framework.mjs';
+import utils from '../../core/utils.mjs';
 
 
 const TWO_SQUARE_MOVES = [

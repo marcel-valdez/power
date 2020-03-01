@@ -19,12 +19,9 @@ body {
 .power-table .power-row .empty {
 }
 
-.power-table .power-row .knight {
-  font-size: 40pt;
-  text-align: center;
-}
-
 .power-table .power-row .square {
+  text-align: center;
+  font-size: 40pt;
   border-width: 2px;
   border-style: solid;
   border-color: transparent;

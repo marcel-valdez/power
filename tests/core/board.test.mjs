@@ -2,11 +2,12 @@ import {
   Board,
   computeWinOdds,
   computeSacrificePower
-} from './board.mjs';
-import {Knight} from './knight.mjs';
-import {PieceType, Side} from './power.common.mjs'
-import {addTest, assert} from './test_framework.mjs';
-import utils from './utils.mjs';
+} from '../../core/board.mjs';
+import {Knight} from '../../core/knight.mjs';
+import {Pawn} from '../../core/pawn.mjs';
+import {PieceType, Side} from '../../core/power.common.mjs';
+import {addTest, assert} from '../../tests/test_framework.mjs';
+import utils from '../../core/utils.mjs';
 
 
 addTest('Can create board', () => {
@@ -192,3 +193,20 @@ addTest('Can compute sacrifice power', () => {
       `owner: ${attackPower}, sacrifice: ${sacrificedPower}`);
   });
 });
+
+// TODO: Add test for en-passant (pawn)
+// TODO: Add test for promotion
+addTest('Can promote piece', () => {
+  // given
+  const pawn = new Pawn({ position: [0, 1]});
+  const board = new Board({
+    squares: [
+      [ null ],
+      [ pawn ],
+    ]
+  });
+  // when
+  const actualBoard = board.makeMove([0,1], [0,0]);
+  // then
+});
+// TODO: Add test for prmotion attack (pawn)
