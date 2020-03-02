@@ -2,7 +2,7 @@
   "name": "power",
   "version": "0.0.1",
   "description": "Power the 1v1 turn-based strategy game",
-  "main": "main.mjs",
+  "main": "index.mjs",
   "directories": {
     "test": "tests"
   },
