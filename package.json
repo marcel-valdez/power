@@ -1,0 +1,30 @@
+{
+  "name": "power",
+  "version": "0.0.1",
+  "description": "Power the 1v1 turn-based strategy game",
+  "main": "main.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "handle_watched_file.sh run_all_tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcel-valdez/power.git"
+  },
+  "keywords": [
+    "power",
+    "chess",
+    "game",
+    "strategy",
+    "board-game",
+    "turn-based"
+  ],
+  "author": "Marcel Valdez",
+  "license": "BSL-1.0",
+  "bugs": {
+    "url": "https://github.com/marcel-valdez/power/issues"
+  },
+  "homepage": "https://github.com/marcel-valdez/power#readme"
+}
