@@ -10,16 +10,20 @@ function print {
 
 function run_all_tests {
   print "Running all tests."
+  local exit_code=0
   for test_file in ./tests/**/*test.mjs; do
     run_test "${test_file}"
+    ! [[ $? -eq 0 ]] && exit_code=1
   done
   print "Done running all tests."
+  return ${exit_code}
 }
 
 function run_test {
   test_file=$1
   print "Running test: ${test_file}"
   node "${test_file}"
+  return $?
 }
 
 function get_test_file {
@@ -49,6 +53,8 @@ function main {
       run_all_tests
     fi
   fi
+
+  exit $?
 }
 
 main "$@"
