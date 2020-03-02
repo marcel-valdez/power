@@ -90,8 +90,8 @@ export class CellUi extends Component {
   render(
     {
       piece = null,
-      rowIdx = 0,
-      colIdx = 0,
+      x = 0,
+      y = 0,
       onClick = (pos = []) => {},
       isSrcPiece = false,
       isDstPiece = false
@@ -101,7 +101,7 @@ export class CellUi extends Component {
     const htmlContent = this.getHtmlContentForPiece(piece);
     let htmlClass = 'square' +
         ' ' + this.getHtmlClassForTurn(isSrcPiece, isDstPiece) +
-        ' ' + this.getHtmlClassForPosition(colIdx, rowIdx) +
+        ' ' + this.getHtmlClassForPosition(x, y) +
         ' ' + this.getHtmlClassForPiece(piece);
 
     return html`<td

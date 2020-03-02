@@ -1,4 +1,3 @@
-
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
@@ -92,8 +91,8 @@ export class BoardUi extends Component {
 
   render({ }, { board, src = [], dst = [], side = Side.WHITE }) {
     const rows = board.getRows()
-          .map((row = [], rowIdx = 0) =>
-               html`<${RowUi} rowIdx=${rowIdx}
+          .map((row = [], y = 0) =>
+               html`<${RowUi} y=${y}
                               row=${row}
                               onClickPiece=${(pos = []) => this.clickPiece(pos)}
                               markedSrc=${src}

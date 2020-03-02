@@ -1,9 +1,10 @@
-import {Winner, PieceType, MoveType, Side} from '../core/power.common.mjs';
-import utils from '../core/utils.mjs';
+
 import {Knight} from '../core/knight.mjs';
+import {Winner, PieceType, MoveType, Side} from '../core/power.common.mjs';
 import {Rook} from '../core/rook.mjs';
 import {Pawn} from '../core/pawn.mjs';
 import {King} from '../core/king.mjs';
+import utils from '../core/utils.mjs';
 
 const STARTING_BOARD = Object.freeze([
   [

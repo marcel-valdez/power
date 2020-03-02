@@ -1,10 +1,9 @@
-
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
 import {PieceType, Side} from '../core/power.common.mjs';
 
-// Initialize htm with Preact
+
 const html = htm.bind(h);
 // TODO: In the future we probably want a different Cell type for each piece,
 // right now, state is good enough.
