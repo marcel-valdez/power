@@ -2,9 +2,10 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {Board} from '/core/board.mjs';
-import {PieceType, Side} from '/core/power.common.mjs';
-import {RowUi} from '/ui/row.mjs';
+import {Board} from '../core/board.mjs';
+import {PieceType, Side} from '../core/power.common.mjs';
+import {RowUi} from '../ui/row.mjs';
+import {PromotionUi} from '../ui/promotion.mjs';
 
 // Initialize htm with Preact
 const html = htm.bind(h);
@@ -16,11 +17,27 @@ export class BoardUi extends Component {
   state = {
     board: new Board(),
     src: null,
-    dst: null
+    dst: null,
+    side: Side.WHITE
   };
 
+  updateState(update) {
+    this.setState(
+          Object.assign({}, this.state, update));
+  }
+
+  getNextSide() {
+    const {side} = this.state;
+    return side === Side.WHITE ? Side.BLACK : Side.WHITE;
+  }
+
   clickPiece(position = []) {
-    const { src = null, dst = null } = this.state;
+    const { src = null, dst = null, board } = this.state;
+    if (board.pendingPromotion) {
+      // Can't move piece until the promotion piece is selected
+      return;
+    }
+
     if (src === null || dst !== null) {
       this.markSrcPiece(position);
     } else {
@@ -31,36 +48,49 @@ export class BoardUi extends Component {
   markSrcPiece(srcPosition = []) {
     // TODO: We probably want to mark 'current move' and 'previous move'
     const [x, y] = srcPosition;
-    const {board} = this.state;
+    const {board, side} = this.state;
+
     if (board.containsPieceAt(x, y)) {
-      this.setState(
-        Object.assign({}, this.state, { src: srcPosition, dst: null }));
+      const srcPiece = board.getPieceAt(x, y);
+      if (srcPiece.side === side) {
+        this.updateState({ src: srcPosition, dst: null });
+      } // else wrong piece color clicked
     } // else the user clicked on an empty square
   }
 
   movePiece(dstPosition = []) {
-    const { board, src = null } = this.state;
+    const { board, src = null, side } = this.state;
     if (dstPosition[0] === src[0] && dstPosition[1] === src[1]) {
       // They clicked the same square, let's 'unclick' the source piece.
-      this.setState({ board, src: null, dst: null });
+      this.updateState({ src: null, dst: null });
       return;
     }
+
     const newBoard = board.makeMove(src, dstPosition);
+    let nextSide = this.getNextSide();
     let dst = dstPosition;
     if (newBoard === board) {
       // the board did not change, this means the destination move
       // is invalid.
       dst = null;
+      nextSide = side;
     }
 
-    this.setState({
+    this.updateState({
       board: newBoard,
       src,
-      dst
+      dst,
+      side: nextSide
     });
   }
 
-  render({ }, { board, src = [], dst = [] }) {
+  setPromotion(type = PieceType.ROOK) {
+    const { board, src, dst, side } = this.state;
+    const promotedBoard = board.setPromotion(type);
+    this.updateState({ board: promotedBoard });
+  }
+
+  render({ }, { board, src = [], dst = [], side = Side.WHITE }) {
     const rows = board.getRows()
           .map((row = [], rowIdx = 0) =>
                html`<${RowUi} rowIdx=${rowIdx}
@@ -68,6 +98,15 @@ export class BoardUi extends Component {
                               onClickPiece=${(pos = []) => this.clickPiece(pos)}
                               markedSrc=${src}
                               markedDst=${dst} />`);
-    return html`<table class='power-table'>${rows}</table>`;
+    const boardUi = html`<table class='power-table'>${rows}</table>`;
+    if (board.pendingPromotion) {
+      const promoOverlay =
+            html`<${PromotionUi} side=${this.getNextSide()}
+                                 onClick=${(type) => this.setPromotion(type)}
+                 />`;
+      return html`${boardUi}<BR/>${promoOverlay}`;
+    } else {
+      return boardUi;
+    }
   }
 }

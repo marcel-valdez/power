@@ -1,5 +1,5 @@
 import {Knight} from '../../core/knight.mjs';
-import {Winner, Side, MoveType} from '../../core/power.common.mjs';
+import {Winner, Side, MoveType, PieceType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import utils from '../../core/utils.mjs';
 
@@ -33,10 +33,10 @@ addTest(
     // when
     const target = new Knight();
     // then
+    assert.equals(target.type, PieceType.KNIGHT);
     assert.equals(target.x, 0);
     assert.equals(target.y, 0);
-    assert.equals(target.isAlive, true);
-    assert.equals(target.power, 0)
+    assert.equals(target.power, 0);
     assert.equals(target.side, Side.WHITE);
   }
 );

@@ -1,7 +1,7 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {CellUi} from '/ui/cell.mjs';
+import {CellUi} from '../ui/cell.mjs';
 
 
 // Initialize htm with Preact

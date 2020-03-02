@@ -3,7 +3,7 @@ import {applyProps} from '../core/pieces.mjs';
 import utils from '../core/utils.mjs';
 
 const DEFAULT_STATE = Object.freeze({
-  position: [0, 0], power: 0, alive: true, side: Side.WHITE
+  position: [0, 0], power: 0, side: Side.WHITE
 });
 
 function Pawn(state = DEFAULT_STATE) {
@@ -35,11 +35,12 @@ function Pawn(state = DEFAULT_STATE) {
       utils.warn('Cannot move in diagonal. Only attack or sacrifice.');
       return MoveType.INVALID;
     } else {
-      const piece = board.getPieceAt(x, y);
-      if (this.isAlly(piece)) {
+      const otherPiece = board.getPieceAt(x, y);
+      if (this.isAlly(otherPiece)) {
         return MoveType.SACRIFICE;
       } else {
-        if (y === 0) {
+        if ((y === 0 && this.side === Side.WHITE) ||
+            (y === 7 && this.side === Side.BLACK)) {
           return MoveType.PROMOTION_ATTACK;
         } else {
           return MoveType.ATTACK;

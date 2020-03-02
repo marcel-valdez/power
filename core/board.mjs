@@ -1,15 +1,17 @@
 import {Winner, PieceType, MoveType, Side} from '../core/power.common.mjs';
 import utils from '../core/utils.mjs';
 import {Knight} from '../core/knight.mjs';
+import {Rook} from '../core/rook.mjs';
 import {Pawn} from '../core/pawn.mjs';
+import {King} from '../core/king.mjs';
 
 const STARTING_BOARD = Object.freeze([
   [
-    null,
+    new Rook({ position: [0, 0], side: Side.BLACK }),
     new Knight({ position: [1, 0], side: Side.BLACK }),
-    null,
+    new King({ position: [2, 0], side: Side.BLACK }),
     new Knight({ position: [3, 0], side: Side.BLACK }),
-    null
+    new Rook({ position: [4, 0], side: Side.BLACK }),
   ],
   [
     new Pawn({ position: [0, 1], side: Side.BLACK }),
@@ -30,11 +32,11 @@ const STARTING_BOARD = Object.freeze([
     new Pawn({ position: [4, 6], side: Side.WHITE }),
   ],
   [
-    null,
+    new Rook({ position: [0, 7], side: Side.WHITE }),
     new Knight({ position: [1, 7], side: Side.WHITE }),
-    null,
+    new King({ position: [2, 7], side: Side.WHITE }),
     new Knight({ position: [3, 7], side: Side.WHITE }),
-    null
+    new Rook({ position: [4, 7], side: Side.WHITE })
   ],
 ]);
 
@@ -106,10 +108,6 @@ function computeSacrificePower(ownerPower, sacrificePower) {
   }
 }
 
-function promotePawn() {
-  // TODO: Implement pawn promotion
-}
-
 function sacrifice(owner, sacrificed) {
   return owner.copy({
     power: computeSacrificePower(owner.power, sacrificed.power)
@@ -124,7 +122,7 @@ function setPiece(rows, newPiece, x, y) {
           if (newPiece == null) {
             return null;
           } else {
-            return newPiece.copy({ position: [_x, _y] });
+            return newPiece.copy({ position: [_x, _y] }).markMoved();
           }
         } else {
           return cell;
@@ -153,6 +151,8 @@ function movePiece(squares, src, dst) {
   const droppedPieceSquares =
         setPiece(pickedupPieceSquares, movedPiece, x2, y2);
 
+  // DRAGONS BE HERE, UNTESTED CODE
+  // TODO: Test this if statement
   let enPassant = null;
   if (movedPiece.type === PieceType.PAWN && Math.abs(y1 - y2) == 2) {
     enPassant = movedPiece;
@@ -160,11 +160,15 @@ function movePiece(squares, src, dst) {
 
   return {
     squares: droppedPieceSquares,
-    enPassant: movedPiece
+    enPassant
   };
 }
 
-function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
+function Board(state = {
+  squares: STARTING_BOARD,
+  enPassant: null,
+  promotion: null
+}) {
   const _state = Object.freeze(Object.assign({}, state));
 
   this.setup = () => {
@@ -173,6 +177,10 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
 
   Object.defineProperty(this, 'enPassant', {
     get() { return _state.enPassant; }
+  });
+
+  Object.defineProperty(this, 'pendingPromotion', {
+    get() { return _state.promotion !== null; }
   });
 
   this.copy = (copyState = null) => {
@@ -195,14 +203,14 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
     const srcPiece = this.getPieceAt(x1, y1);
     const dstPiece = this.getPieceAt(x2, y2);
     const result = attack(srcPiece, dstPiece);
-      return this.copy({
-        // remove piece from src
-        squares: removePiece(
-          // set winner piece at dst
-          setPiece(_state.squares, result.winner, x2, y2),
-          x1, y1),
-        enPassant: null
-      });
+    return this.copy({
+      // remove piece from src
+      squares: removePiece(
+        // set winner piece at dst
+        setPiece(_state.squares, result.winner, x2, y2),
+        x1, y1),
+      enPassant: null
+    });
   };
 
   const doSacrifice = (src, dst) => {
@@ -210,17 +218,25 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
     const [x2, y2] = dst;
     const srcPiece = this.getPieceAt(x1, y1);
     const dstPiece = this.getPieceAt(x2, y2);
+
+    // The king can't be sacrificed.
+    // TODO: Has not been tested
+    // NOTE: Should this be implemented on every piece's logic?
+    if (dstPiece.type === PieceType.KING) {
+      return this;
+    }
+
     const newPiece = sacrifice(srcPiece, dstPiece);
-      return this.copy({
-        squares: removePiece(
-          setPiece(_state.squares, newPiece, x2, y2),
-          x1, y1
-        ),
-        enPassant: null
-      });
+    return this.copy({
+      squares: removePiece(
+        setPiece(_state.squares, newPiece, x2, y2),
+        x1, y1
+      ),
+      enPassant: null
+    });
   };
 
-  const doEnPassant = (src, dst) => {
+  const doEnPassantAttack = (src, dst) => {
     // HERE BE DRAGONS: UNTESTED CODE
     const [x1, y1] = src;
     const [x2, y2] = dst;
@@ -250,6 +266,40 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
     });
   };
 
+  const doPromotion = (src, dst) => {
+    const [x2, y2] = dst;
+    const movedPawn = doMove(src, dst);
+    return movedPawn.copy({
+      promotion: movedPawn.getPieceAt(x2, y2)
+    });
+  };
+
+  const doPromotionAttack = (src, dst) => {
+    const [x2, y2] = dst;
+    // first do the attack
+    const atkBoard = doAttack(src, dst);
+    // if the winner is the pawn
+    if (atkBoard.getPieceAt(x2, y2).type === PieceType.PAWN) {
+      // then do a promotion to the destination position
+      return doPromotion(src, dst);
+    } else {
+      return atkBoard;
+    }
+  };
+
+  const doCastle = (src, dst) => {
+    const [x1, y1] = src;
+    const [x2, y2] = dst;
+    const {squares: origSquares} = _state;
+    const rook = this.getPieceAt(x2, y2);
+
+    const rookX = Math.min(x1, x2) + 1;
+    const { squares: movedKingSquares, enPassant } =
+          movePiece(origSquares, src, dst);
+    const castledSquares = setPiece(movedKingSquares, rook, rookX, y2);
+    return this.copy({ squares: castledSquares, enPassant });
+  };
+
   this.makeMove = (src, dst) => {
     const [x1, y1] = src;
     const [x2, y2] = dst;
@@ -276,10 +326,42 @@ function Board(state = { squares: STARTING_BOARD, enPassant: null }) {
     case MoveType.SACRIFICE:
       return doSacrifice(src, dst);
     case MoveType.EN_PASSANT_ATTACK:
-      return doEnPassant(src, dst);
+      return doEnPassantAttack(src, dst);
+    case MoveType.PROMOTION:
+      return doPromotion(src, dst);
+    case MoveType.PROMOTION_ATTACK:
+      return doPromotionAttack(src, dst);
+    case MoveType.CASTLE:
+      return doCastle(src, dst);
     default:
       throw `${moveType} is not supported.`;
     }
+  };
+
+  this.setPromotion = (pieceType = PieceType.ROOK) => {
+    const [x,y] = [ _state.promotion.x, _state.promotion.y ];
+    const promotionSide = _state.promotion.side;
+    let promotedPiece;
+    if (pieceType === PieceType.ROOK) {
+      promotedPiece = new Rook({
+        side: promotionSide,
+        position: [x, y],
+        power: 0
+      });
+    } else {
+      promotedPiece = new Knight({
+        side: promotionSide,
+        position: [x, y],
+        power: 0
+      });
+    }
+
+    const newSquares =
+          setPiece(_state.squares, promotedPiece, x, y);
+    return this.copy({
+      squares: newSquares,
+      promotion: null
+    });
   };
 
   this.getRow = (rowIdx) => {

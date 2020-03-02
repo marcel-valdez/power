@@ -92,8 +92,10 @@ function processResults(
 
   const { pass_count, fail_count } = results;
   const total_count = pass_count + fail_count;
-  const resultMsg = `PASSED: ${pass_count}/${total_count}\n`
-        + `FAILED: ${fail_count}/${total_count}`;
+  let resultMsg = `PASSED: ${pass_count}/${total_count}`;
+  if (fail_count > 0) {
+     resultMsg += `\nFAILED: ${fail_count}/${total_count}`;
+  }
   utils.info(resultMsg);
   write(resultMsg);
 }

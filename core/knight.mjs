@@ -3,7 +3,7 @@ import {applyProps} from '../core/pieces.mjs';
 import utils from '../core/utils.mjs';
 
 const DEFAULT_STATE = Object.freeze({
-  position: [0, 0], power: 0, alive: true, side: Side.WHITE
+  position: [0, 0], power: 0, side: Side.WHITE
 });
 
 function Knight(state = DEFAULT_STATE) {

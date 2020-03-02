@@ -1,7 +1,7 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {BoardUi} from '/ui/board.mjs';
+import {BoardUi} from './ui/board.mjs';
 
 // Initialize htm with Preact
 const html = htm.bind(h);

@@ -3,6 +3,8 @@ import {
   computeWinOdds,
   computeSacrificePower
 } from '../../core/board.mjs';
+import {Rook} from '../../core/rook.mjs';
+import {King} from '../../core/king.mjs';
 import {Knight} from '../../core/knight.mjs';
 import {Pawn} from '../../core/pawn.mjs';
 import {PieceType, Side} from '../../core/power.common.mjs';
@@ -50,7 +52,6 @@ addTest('Can get row', () => {
 
 addTest('Can move piece', () => {
   // given
-  utils.enableDebug();
   const knight = new Knight({position: [0, 1]});
   const board = new Board({
     squares: [
@@ -68,7 +69,6 @@ addTest('Can move piece', () => {
 
 addTest('Can kill piece', () => {
   // given
-  utils.enableDebug();
   const attacker = new Knight({position: [0, 0], side: Side.WHITE});
   const ignored = new Knight({position: [0, 1], side: Side.BLACK});
   const defender = new Knight({position: [0, 2], side: Side.BLACK});
@@ -130,7 +130,6 @@ addTest('Can compute win odds', () => {
 
 addTest('Can sacrifice piece', () => {
   // given
-  utils.enableDebug();
   const attacker = new Knight({position: [0, 0], side: Side.WHITE});
   const ignored = new Knight({position: [0, 1], side: Side.BLACK});
   const sacrificed = new Knight({position: [0, 2], side: Side.WHITE});
@@ -194,8 +193,8 @@ addTest('Can compute sacrifice power', () => {
   });
 });
 
-// TODO: Add test for en-passant (pawn)
-// TODO: Add test for promotion
+// TODO: Add test for en-passant attack (pawn)
+
 addTest('Can promote piece', () => {
   // given
   const pawn = new Pawn({ position: [0, 1]});
@@ -206,7 +205,76 @@ addTest('Can promote piece', () => {
     ]
   });
   // when
-  const actualBoard = board.makeMove([0,1], [0,0]);
+  const actualBoard = board.makeMove([0, 1], [0, 0]);
   // then
+  assert.equals(actualBoard.getPieceAt(0, 0).type, PieceType.PAWN);
+  assert.equals(actualBoard.pendingPromotion, true);
 });
-// TODO: Add test for prmotion attack (pawn)
+
+addTest('Can set promoted piece', () => {
+  // given
+  const pawn = new Pawn({ position: [0, 1]});
+  const board = new Board({
+    squares: [
+      [ null ],
+      [ pawn ],
+    ]
+  });
+  const promotionBoard = board.makeMove([0, 1], [0, 0]);
+  // when
+  const promotedBoard = promotionBoard.setPromotion(PieceType.KNIGHT);
+  // then
+  assert.equals(promotedBoard.getPieceAt(0, 0).type, PieceType.KNIGHT);
+  assert.equals(promotedBoard.pendingPromotion, false);
+});
+
+addTest('Can promote piece via attack', () => {
+  // given
+  const blackPawn = new Pawn({ side: Side.BLACK, position: [0, 0]});
+  const whitePawn = new Pawn({ position: [1, 1]});
+  const board = new Board({
+    squares: [
+      [ blackPawn, null ],
+      [ null, whitePawn ],
+    ]
+  });
+  // when
+  const actualBoard = board.makeMove([1, 1], [0, 0]);
+  // then
+  // 1. the pawn should be moved to the top
+  assert.equals(actualBoard.getPieceAt(0, 0).type, PieceType.PAWN);
+  // 2. an external field called "promotion" should be set to true
+  assert.equals(actualBoard.pendingPromotion, true);
+});
+
+
+addTest('Can castle the king', () => {
+  utils.enableDebug();
+  // given
+  const king = new King({ position: [2, 0]});
+  const leftRook = new Rook({ position: [0, 0]});
+  const rightRook = new Rook({ position: [4, 0]});
+  const board = new Board({
+    squares: [
+      [ leftRook, null, king, null, rightRook ],
+    ]
+  });
+
+  [
+    { kingDst: [0, 0], rookDst: [1,0] },
+    { kingDst: [4, 0], rookDst: [3,0] }
+  ].forEach(({ kingDst, rookDst }) => {
+    const [kingX, kingY] = kingDst;
+    const [rookX, rookY] = rookDst;
+    // when
+    const actualBoard = board.makeMove([2, 0], kingDst);
+    // then
+    const actualRook = actualBoard.getPieceAt(rookX, rookY);
+    const actualKing = actualBoard.getPieceAt(kingX, kingY);
+
+    assert.equals(actualRook.type, PieceType.ROOK);
+    assert.equals(actualKing.type, PieceType.KING);
+    assert.equals(actualRook.canCastle, false);
+    assert.equals(actualKing.canCastle, false);
+  });
+});

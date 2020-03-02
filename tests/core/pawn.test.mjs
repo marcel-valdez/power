@@ -12,7 +12,6 @@ addTest(
     // then
     assert.equals(target.x, 0);
     assert.equals(target.y, 0);
-    assert.equals(target.isAlive, true);
     assert.equals(target.power, 0);
     assert.equals(target.side, Side.WHITE);
   });
@@ -413,7 +412,7 @@ addTest(
   });
 
 addTest(
-  'Can identify a promotion attack',
+  'Can identify a promotion attack (white)',
   () => {
     // given
     const target = new Pawn({position: [3,1], side: Side.WHITE});
@@ -426,6 +425,25 @@ addTest(
     assert.equals(
       // when
       target.computeMoveType(board, 4, 0),
+      // then
+      MoveType.PROMOTION_ATTACK
+    );
+  });
+
+addTest(
+  'Can identify a promotion attack (black)',
+  () => {
+    // given
+    const target = new Pawn({position: [6,6], side: Side.BLACK});
+    const board = {
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x,y) => x == 7 && y == 7,
+      getPieceAt: (x,y) => new Pawn({side: Side.WHITE})
+    };
+
+    assert.equals(
+      // when
+      target.computeMoveType(board, 7, 7),
       // then
       MoveType.PROMOTION_ATTACK
     );

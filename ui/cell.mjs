@@ -1,7 +1,7 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {PieceType, Side} from '/core/power.common.mjs';
+import {PieceType, Side} from '../core/power.common.mjs';
 
 // Initialize htm with Preact
 const html = htm.bind(h);
@@ -40,8 +40,12 @@ export class CellUi extends Component {
       return 'knight';
     case PieceType.PAWN:
       return 'pawn';
+    case PieceType.ROOK:
+      return 'rook';
+    case PieceType.KING:
+      return 'king';
     default:
-      throw 'Piece type ${piece.type} unknown.';
+      throw `Piece type ${pieceType} unknown.`;
     }
   }
 
@@ -74,8 +78,12 @@ export class CellUi extends Component {
       return piece.side == Side.WHITE ? '♘' : '♞';
     case PieceType.PAWN:
       return piece.side == Side.WHITE ? '♙' : '♟';
+    case PieceType.ROOK:
+      return piece.side == Side.WHITE ? '♖' : '♜';
+    case PieceType.KING:
+      return piece.side == Side.WHITE ? '♔' : '♚';
     default:
-      throw 'Piece type ${piece.type} unknown.';
+      throw `Piece type ${piece.type} unknown.`;
     }
   }
 
