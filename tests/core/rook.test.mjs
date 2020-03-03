@@ -1,4 +1,5 @@
 import {Rook} from '../../core/rook.mjs';
+import {King} from '../../core/king.mjs';
 import {Winner, Side, MoveType, PieceType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import utils from '../../core/utils.mjs';
@@ -143,7 +144,8 @@ addTest(
     // given
     const target = new Rook({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x, y) => false
     };
     // when
     // then
@@ -182,6 +184,27 @@ addTest(
       const moveType = target.computeMoveType(board, x, y);
       // then
       assert.equals(moveType, MoveType.SACRIFICE);
+    });
+  });
+
+addTest(
+  'Can\'t sacrifice KING',
+  () => {
+    // given
+    const target = new Rook({position: [3,3]});
+    const dst = { x: null, y: null };
+    const board = {
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x,y) => dst['x'] === x && dst['y'] === y,
+      getPieceAt: (x, y) => new King()
+    };
+    VALID_MOVES.forEach(([x,y]) => {
+      dst['x'] = x;
+      dst['y'] = y;
+      // when
+      const moveType = target.computeMoveType(board, x, y);
+      // then
+      assert.equals(moveType, MoveType.INVALID);
     });
   });
 

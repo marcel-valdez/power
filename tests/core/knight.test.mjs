@@ -1,4 +1,5 @@
 import {Knight} from '../../core/knight.mjs';
+import {King} from '../../core/king.mjs';
 import {Winner, Side, MoveType, PieceType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import utils from '../../core/utils.mjs';
@@ -72,7 +73,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => false,
+      isWithinBoundaries: (x,y) => false
     };
     // when
     const moveType = target.computeMoveType(board, 1, 1);
@@ -87,7 +88,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: (x,y) => true
     };
     // when
     const moveType = target.computeMoveType(board, 6, 3);
@@ -102,7 +103,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: (x,y) => true
     };
     // when
     const moveType = target.computeMoveType(board, 3, 6);
@@ -117,7 +118,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: (x,y) => true
     };
     // when
     // then
@@ -134,7 +135,7 @@ addTest(
       target.computeMoveType(board, x, y),
       MoveType.INVALID,
       `Move from (3,3) to (${x}, ${y})`
-    ))
+    ));
   }
 );
 
@@ -145,7 +146,7 @@ addTest(
     const target = new Knight({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      containsPieceAt: (x,y) => false
     };
     // when
     ONE_SQUARE_MOVES.forEach(([x, y]) => assert.equals(
@@ -164,7 +165,7 @@ addTest(
     const target = new Knight({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
+      containsPieceAt: (x,y) => true
     };
     // when
     const moveType = target.computeMoveType(board, 3, 4);
@@ -178,7 +179,7 @@ addTest(
   () => {
     // given
     const state = {
-      square: [0,0],
+      square: [0,0]
     };
     const target = new Knight({position: [3,3]});
     const board = {
@@ -188,7 +189,7 @@ addTest(
         const result = x !== state.square[0] || y !== state.square[1];
         utils.debug(`result: ${result}`);
         return result;
-      },
+      }
     };
     // when
     // then
@@ -239,6 +240,27 @@ addTest(
       assert.equals(
         target.computeMoveType(board, x, y),
         MoveType.SACRIFICE,
+        `Move from (3,3) to (${x}, ${y})`
+      );
+    });
+  });
+
+addTest(
+  'Can identify invalid two-square KING sacrifices',
+  () => {
+    // given
+    const target = new Knight({position: [3,3], side: Side.WHITE});
+    const board = {
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x,y) => true,
+      getPieceAt: (x,y) => new King({side: Side.WHITE})
+    };
+    // when
+    // then
+    TWO_SQUARE_MOVES.forEach(([x, y]) => {
+      assert.equals(
+        target.computeMoveType(board, x, y),
+        MoveType.INVALID,
         `Move from (3,3) to (${x}, ${y})`
       );
     });

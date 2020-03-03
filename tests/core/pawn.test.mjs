@@ -1,4 +1,5 @@
 import {Pawn} from '../../core/pawn.mjs';
+import {King} from '../../core/king.mjs';
 import {Winner, Side, MoveType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import utils from '../../core/utils.mjs';
@@ -172,7 +173,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x, y) => false
     };
     // when
     // then
@@ -224,7 +226,8 @@ addTest(
     const target = new Pawn({position: [3,3]});
     const board = {
       isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true
+      containsPieceAt: (x,y) => true,
+      getPieceAt: (x,y) => new Pawn()
     };
     // when
     const moveType = target.computeMoveType(board, 3, 2);
@@ -242,7 +245,8 @@ addTest(
       // when
       target.computeMoveType({
         isWithinBoundaries: (x,y) => true,
-        containsPieceAt: (x,y) => x == 3 && y == 2
+        containsPieceAt: (x,y) => x == 3 && y == 2,
+        getPieceAt: (x, y) => new Pawn()
       }, 3, 1),
       // then
       MoveType.INVALID);
@@ -251,7 +255,8 @@ addTest(
       // when
       target.computeMoveType({
         isWithinBoundaries: (x,y) => true,
-        containsPieceAt: (x,y) => x == 3 && y == 1
+        containsPieceAt: (x,y) => x == 3 && y == 1,
+        getPieceAt: (x, y) => new Pawn()
       }, 3, 1),
       // then
       MoveType.INVALID);
@@ -360,6 +365,33 @@ addTest(
       MoveType.SACRIFICE
     );
   });
+
+addTest(
+  'Can identify invalid sacrifice of KING',
+  () => {
+    // given
+    const target = new Pawn({position: [3,3], side: Side.WHITE});
+    const board = {
+      isWithinBoundaries: (x,y) => true,
+      containsPieceAt: (x,y) => true,
+      getPieceAt: (x,y) => new King({side: Side.WHITE})
+    };
+
+    assert.equals(
+      // when
+      target.computeMoveType(board, 2, 2),
+      // then
+      MoveType.INVALID
+    );
+
+    assert.equals(
+      // when
+      target.computeMoveType(board, 4, 2),
+      // then
+      MoveType.INVALID
+    );
+  });
+
 
 addTest(
   'Can identify promotion move.',

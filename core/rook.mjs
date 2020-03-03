@@ -23,18 +23,12 @@ function Rook(state = DEFAULT_STATE) {
   this.isAlly = (other) => this.side == other.side;
 
   this.computeMoveType = (board, x, y) => {
-    const deltaX = Math.abs(x - this.x);
-    const deltaY = Math.abs(y - this.y);
-
-    if (x === this.x && y === this.y) {
-      utils.warn('Tried to move Rook into same place.');
-      return MoveType.INVALID; // Cannot stay in place
-    }
-
-    if (!board.isWithinBoundaries(x, y)) {
-      utils.warn('Tried to move Rook outside of boundaries.');
+    if (!this.isBasicValidMove(board, x, y)) {
       return MoveType.INVALID;
     }
+
+    const deltaX = Math.abs(x - this.x);
+    const deltaY = Math.abs(y - this.y);
 
     if (deltaX > 0 && deltaY > 0) {
       utils.warn('Tried to move rook in a non-straight line.');
@@ -68,12 +62,7 @@ function Rook(state = DEFAULT_STATE) {
     if (board.containsPieceAt(x, y)) {
       const targetPiece = board.getPieceAt(x, y);
       if (this.isAlly(targetPiece)) {
-        if (targetPiece.type === PieceType.KING) {
-          utils.warn('Tried to sacrifice the King!');
-          return MoveType.INVALID;
-        } else {
-          return MoveType.SACRIFICE;
-        }
+        return MoveType.SACRIFICE;
       } else {
         return MoveType.ATTACK;
       }

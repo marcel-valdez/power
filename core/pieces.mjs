@@ -1,3 +1,5 @@
+import {PieceType} from '../core/power.common.mjs';
+import utils from '../core/utils.mjs';
 
 const applyProps = (piece, state) => {
 
@@ -28,6 +30,27 @@ const applyProps = (piece, state) => {
   });
 
   piece.markMoved = () => piece;
+
+  piece.isBasicValidMove = (board, x, y) => {
+    if (x === piece.x && y === piece.y) {
+      utils.warn(`Tried to move ${piece.type} into same place.`);
+      return false; // Cannot stay in place
+    }
+
+    if (!board.isWithinBoundaries(x, y)) {
+      utils.warn(`Tried to move ${piece.type} outside of boundaries.`);
+      return false;
+    }
+
+    if (board.containsPieceAt(x, y)) {
+      const targetPiece = board.getPieceAt(x, y);
+      if (piece.isAlly(targetPiece) && targetPiece.type == PieceType.KING) {
+        return false;
+      }
+    }
+
+    return true;
+  };
 };
 
 export { applyProps };

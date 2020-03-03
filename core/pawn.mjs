@@ -37,12 +37,7 @@ function Pawn(state = DEFAULT_STATE) {
     } else {
       const otherPiece = board.getPieceAt(x, y);
       if (this.isAlly(otherPiece)) {
-        if (otherPiece.type === PieceType.KING) {
-          utils.warn("You can't sacrifice the King!");
-          return MoveType.INVALID;
-        } else {
-          return MoveType.SACRIFICE;
-        }
+        return MoveType.SACRIFICE;
       } else {
         if ((y === 0 && this.side === Side.WHITE) ||
             (y === 7 && this.side === Side.BLACK)) {
@@ -57,16 +52,6 @@ function Pawn(state = DEFAULT_STATE) {
   const isInvalidTranslation = (board, x, y) => {
     const deltaX = Math.abs(x - this.x);
     const deltaY = Math.abs(y - this.y);
-
-    if (x === this.x && y === this.y) {
-      utils.warn('Tried to move Pawn into same place.');
-      return true; // Cannot stay in place
-    }
-
-    if (!board.isWithinBoundaries(x, y)) {
-      utils.warn('Tried to move Pawn outside of boundaries.');
-      return true;
-    }
 
     if ((this.side === Side.WHITE && y > this.y) ||
         (this.side === Side.BLACK && y < this.y)) {
@@ -132,6 +117,10 @@ function Pawn(state = DEFAULT_STATE) {
   this.computeMoveType = (board, x, y) => {
     const deltaX = Math.abs(x - this.x);
     const deltaY = Math.abs(y - this.y);
+
+    if (!this.isBasicValidMove(board, x, y)) {
+      return MoveType.INVALID;
+    }
 
     if (isInvalidTranslation(board, x, y)) {
       return MoveType.INVALID;
