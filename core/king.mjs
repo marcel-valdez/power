@@ -23,18 +23,12 @@ function King(state = DEFAULT_STATE) {
   this.isAlly = (other) => this.side == other.side;
 
   this.computeMoveType = (board, x, y) => {
-    const deltaX = Math.abs(x - this.x);
-    const deltaY = Math.abs(y - this.y);
-
-    if (x === this.x && y === this.y) {
-      utils.warn('Tried to move King into same place.');
-      return MoveType.INVALID; // Cannot stay in place
-    }
-
-    if (!board.isWithinBoundaries(x, y)) {
-      utils.warn('Tried to move King outside of boundaries.');
+    if (!this.isBasicValidMove(board, x, y)) {
       return MoveType.INVALID;
     }
+
+    const deltaX = Math.abs(x - this.x);
+    const deltaY = Math.abs(y - this.y);
 
     // handle castling
     if (this.canCastle && deltaY == 0 && deltaX > 1) {
