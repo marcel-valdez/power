@@ -1,7 +1,7 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {Board} from '../core/board.mjs';
+import {Board, computeWinOdds} from '../core/board.mjs';
 import {MoveType, PieceType, Side} from '../core/power.common.mjs';
 import {RowUi} from '../ui/row.mjs';
 import {PromotionUi} from '../ui/promotion.mjs';
@@ -97,6 +97,7 @@ export class BoardUi extends Component {
       dst = [],
       side = Side.WHITE
     }) {
+
     const isValidMovePositionFn = (x2,y2) => {
       // if no src piece has been selected or both src and dst pieces
       // have already been selected, don't highlight anything.
@@ -109,12 +110,36 @@ export class BoardUi extends Component {
       return MoveType.INVALID !== selPiece.computeMoveType(board, x2, y2);
     };
 
+    const oddsForPieceFn = (x2, y2) => {
+      if (selectedPos === null) {
+        return 0.0;
+      }
+
+      if (!isValidMovePositionFn(x2,y2)) {
+        return 0.0;
+      }
+
+      if (!board.containsPieceAt(x2, y2)) {
+        return 0.0;
+      }
+
+      const [x1, y1] = selectedPos;
+      const attacker = board.getPieceAt(x1, y1);
+      const defender = board.getPieceAt(x2, y2);
+
+      if (attacker.isAlly(defender)) {
+        return 0.0;
+      }
+      return computeWinOdds(attacker.power, defender.power);
+    };
+
     const rows = board.getRows()
           .map((row = [], y = 0) =>
                html`<${RowUi} y=${y}
                               row=${row}
                               onClickPiece=${(pos = []) => this.clickPiece(pos)}
                               isValidMovePositionFn=${isValidMovePositionFn}
+                              oddsForPieceFn=${oddsForPieceFn}
                               selectedPos=${selectedPos}
                               markedSrc=${src}
                               markedDst=${dst} />`);

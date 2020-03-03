@@ -127,6 +127,19 @@ export class CellUi extends Component {
     }
   }
 
+  getTooltipHtmlContent(oddsForPiece = 0.0) {
+    if (oddsForPiece <= 0.0) {
+      return '';
+    }
+
+    return html`
+<div class="battletooltip-container">
+<div class="battletooltip">
+${oddsForPiece*100}% odds of defeating this piece.
+</div>
+</div>`;
+  }
+
   render(
     {
       piece = null,
@@ -136,11 +149,13 @@ export class CellUi extends Component {
       isSrcPiece = false,
       isDstPiece = false,
       isSelected = false,
-      isValidMovePosition = false
+      isValidMovePosition = false,
+      oddsForPiece = 0.0
     },
     { })
   {
-    const htmlContent = this.getHtmlContentForPiece(piece);
+    const stdHtmlContent = this.getHtmlContentForPiece(piece);
+    const tooltipHtmlContent = this.getTooltipHtmlContent(oddsForPiece);
     let htmlClass = 'square' +
         ' ' + this.getHtmlClassForTurn(isSrcPiece, isDstPiece) +
         ' ' + this.getHtmlClassForSelection(isSelected) +
@@ -148,10 +163,12 @@ export class CellUi extends Component {
         ' ' + this.getHtmlClassForPiece(piece) +
         ' ' + this.getHtmlClassForMoveValidity(isValidMovePosition);
 
+    const htmlContent = stdHtmlContent;
     return html`<td
       class=${htmlClass}
       onClick=${() => onClick()}>
         ${htmlContent}
+        ${tooltipHtmlContent}
     </td>`;
   }
 }

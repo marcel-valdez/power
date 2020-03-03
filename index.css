@@ -1,5 +1,11 @@
 body {
+  font-family: 'Noto Sans';
   height: 100%;
+}
+
+h1 {
+  align-items: center;
+  text-align: center;
 }
 
 #power {
@@ -83,4 +89,32 @@ body {
 
 .power-table > .power-row > .square > .piece-power-container > .piece-power.strong {
   color: forestgreen;
+}
+
+.battletooltip-container {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.battletooltip-container .battletooltip {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: white;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  font-size: 12pt;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  margin-left: -20px;
+  bottom: 72px;
+}
+
+.square:hover .battletooltip {
+  visibility: visible;
+  display: block;
 }

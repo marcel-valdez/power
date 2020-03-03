@@ -14,9 +14,11 @@ export class RowUi extends Component {
       markedSrc = [],
       markedDst = [],
       onClickPiece = (pos = []) => {},
-      isValidMovePositionFn = (x, y) => false
+      isValidMovePositionFn = (x, y) => false,
+      oddsForPieceFn = (x, y) => 0.0
     },
     { }) {
+
     const [selX = -1, selY = -1] = selectedPos || [];
     const [srcX = -1, srcY = -1] = markedSrc || [];
     const [dstX = -1, dstY = -1] = markedDst || [];
@@ -28,7 +30,8 @@ export class RowUi extends Component {
     isSrcPiece=${x === srcX && y === srcY}
     isDstPiece=${x === dstX && y === dstY}
     onClick=${() => onClickPiece([x, y])}
-    isValidMovePosition=${isValidMovePositionFn(x,y)}
+    isValidMovePosition=${isValidMovePositionFn(x, y)}
+    oddsForPiece=${oddsForPieceFn(x, y)}
       />`);
 
     return html`<tr class='power-row'>${pieces}</tr>`;
