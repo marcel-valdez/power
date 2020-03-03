@@ -66,8 +66,14 @@ function Rook(state = DEFAULT_STATE) {
     }
 
     if (board.containsPieceAt(x, y)) {
-      if (this.isAlly(board.getPieceAt(x, y))) {
-        return MoveType.SACRIFICE;
+      const targetPiece = board.getPieceAt(x, y);
+      if (this.isAlly(targetPiece)) {
+        if (targetPiece.type === PieceType.KING) {
+          utils.warn('Tried to sacrifice the King!');
+          return MoveType.INVALID;
+        } else {
+          return MoveType.SACRIFICE;
+        }
       } else {
         return MoveType.ATTACK;
       }

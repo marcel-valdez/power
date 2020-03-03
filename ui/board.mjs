@@ -2,7 +2,7 @@ import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
 import {Board} from '../core/board.mjs';
-import {PieceType, Side} from '../core/power.common.mjs';
+import {MoveType, PieceType, Side} from '../core/power.common.mjs';
 import {RowUi} from '../ui/row.mjs';
 import {PromotionUi} from '../ui/promotion.mjs';
 
@@ -90,11 +90,24 @@ export class BoardUi extends Component {
   }
 
   render({ }, { board, src = [], dst = [], side = Side.WHITE }) {
+    const isValidMovePositionFn = (x2,y2) => {
+      // if no src piece has been selected or both src and dst pieces
+      // have already been selected, don't highlight anything.
+      if (src === null || dst !== null) {
+        return false;
+      }
+
+      const [x1, y1] = src;
+      const srcPiece = board.getPieceAt(x1, y1);
+      return MoveType.INVALID !== srcPiece.computeMoveType(board, x2, y2);
+    };
+
     const rows = board.getRows()
           .map((row = [], y = 0) =>
                html`<${RowUi} y=${y}
                               row=${row}
                               onClickPiece=${(pos = []) => this.clickPiece(pos)}
+                              isValidMovePositionFn=${isValidMovePositionFn}
                               markedSrc=${src}
                               markedDst=${dst} />`);
     const boardUi = html`<table class='power-table'>${rows}</table>`;

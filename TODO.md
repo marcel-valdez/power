@@ -8,6 +8,11 @@
   - Value: Very high
   - Also highlight with green the square the mouse hovers over if it can move there
   and highlight with red when it is invalid.
+- Allow the user to undo an action.
+  - Effort: S+
+  - Value: Very High
+  - Ambiguity: Very Low, we use the previous state and restore when the button is
+  clicked, this is very easy to implement.
 - Provide feedback to the user when an invalid action is taken.
   - Effort: M
   - Value: Very high

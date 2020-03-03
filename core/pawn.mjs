@@ -37,7 +37,12 @@ function Pawn(state = DEFAULT_STATE) {
     } else {
       const otherPiece = board.getPieceAt(x, y);
       if (this.isAlly(otherPiece)) {
-        return MoveType.SACRIFICE;
+        if (otherPiece.type === PieceType.KING) {
+          utils.warn("You can't sacrifice the King!");
+          return MoveType.INVALID;
+        } else {
+          return MoveType.SACRIFICE;
+        }
       } else {
         if ((y === 0 && this.side === Side.WHITE) ||
             (y === 7 && this.side === Side.BLACK)) {

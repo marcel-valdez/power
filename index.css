@@ -13,13 +13,13 @@ body {
   border-style: groove;
 }
 
-.power-table .power-row {
+.power-table > .power-row {
 }
 
-.power-table .power-row .empty {
+.power-table > .power-row > .empty {
 }
 
-.power-table .power-row .square {
+.power-table > .power-row > .square {
   text-align: center;
   font-size: 40pt;
   border-width: 2px;
@@ -29,25 +29,36 @@ body {
   height: 80px;
 }
 
-.power-table .power-row .white-square {
-
-}
-
-.power-table .power-row .black-square {
+.power-table > .power-row > .black-square {
   background-color: gray;
 }
 
-.power-table .power-row .white-piece {
+.power-table > .power-row > .white-square {
+
 }
 
-.power-table .power-row .black-piece {
+.power-table > .power-row > .square.white-square.valid-move {
+  /*background-color: rgba(8F, BC, 8F, 1);*/
+  background-color: rgba(85, 107, 47, 0.25);
 }
 
-.power-table .power-row .src-piece {
+.power-table > .power-row > .square.black-square.valid-move {
+  /*background-color: #8FBC8F;*/
+  /*background-color: #556B2F;*/
+  background-color: rgba(85, 107, 47, 0.5);
+}
+
+.power-table > .power-row > .white-piece {
+}
+
+.power-table > .power-row > .black-piece {
+}
+
+.power-table > .power-row > .src-piece {
   border-color: blue;
 }
 
 
-.power-table .power-row .dst-piece {
+.power-table > .power-row > .dst-piece {
   border-color: red;
 }

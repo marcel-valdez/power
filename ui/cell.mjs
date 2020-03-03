@@ -87,6 +87,14 @@ export class CellUi extends Component {
     }
   }
 
+  getHtmlClassForMoveValidity(isValidMovePosition = false) {
+    if (isValidMovePosition) {
+      return 'valid-move';
+    } else {
+      return '';
+    }
+  }
+
   render(
     {
       piece = null,
@@ -94,7 +102,8 @@ export class CellUi extends Component {
       y = 0,
       onClick = (pos = []) => {},
       isSrcPiece = false,
-      isDstPiece = false
+      isDstPiece = false,
+      isValidMovePosition = false
     },
     { })
   {
@@ -102,7 +111,8 @@ export class CellUi extends Component {
     let htmlClass = 'square' +
         ' ' + this.getHtmlClassForTurn(isSrcPiece, isDstPiece) +
         ' ' + this.getHtmlClassForPosition(x, y) +
-        ' ' + this.getHtmlClassForPiece(piece);
+        ' ' + this.getHtmlClassForPiece(piece) +
+        ' ' + this.getHtmlClassForMoveValidity(isValidMovePosition);
 
     return html`<td
       class=${htmlClass}
