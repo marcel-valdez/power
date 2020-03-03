@@ -15,6 +15,7 @@ const html = htm.bind(h);
 export class BoardUi extends Component {
   state = {
     board: new Board(),
+    selectedPos: null,
     src: null,
     dst: null,
     side: Side.WHITE
@@ -31,75 +32,81 @@ export class BoardUi extends Component {
   }
 
   clickPiece(position = []) {
-    const { src = null, dst = null, board } = this.state;
+    const { selectedPos = null, board } = this.state;
     if (board.pendingPromotion) {
       // Can't move piece until the promotion piece is selected
       return;
     }
 
-    if (src === null || dst !== null) {
-      this.markSrcPiece(position);
+    if (selectedPos === null) {
+      this.markSelectedPiece(position);
     } else {
       this.movePiece(position);
     }
   }
 
-  markSrcPiece(srcPosition = []) {
-    // TODO: We probably want to mark 'current move' and 'previous move'
-    const [x, y] = srcPosition;
+  markSelectedPiece(selectedPos = []) {
+    const [x, y] = selectedPos;
     const {board, side} = this.state;
 
     if (board.containsPieceAt(x, y)) {
-      const srcPiece = board.getPieceAt(x, y);
-      if (srcPiece.side === side) {
-        this.updateState({ src: srcPosition, dst: null });
+      const selPiece = board.getPieceAt(x, y);
+      if (selPiece.side === side) {
+        this.updateState({ selectedPos });
       } // else wrong piece color clicked
     } // else the user clicked on an empty square
   }
 
-  movePiece(dstPosition = []) {
-    const { board, src = null, side } = this.state;
-    if (dstPosition[0] === src[0] && dstPosition[1] === src[1]) {
-      // They clicked the same square, let's 'unclick' the source piece.
-      this.updateState({ src: null, dst: null });
+  movePiece(targetPosition = []) {
+    const { board, selectedPos = null, src = null, side } = this.state;
+    if (targetPosition[0] === selectedPos[0] &&
+        targetPosition[1] === selectedPos[1]) {
+      // They clicked the same square, let's unselect the piece.
+      this.updateState({ selectedPos: null });
       return;
     }
 
-    const newBoard = board.makeMove(src, dstPosition);
-    let nextSide = this.getNextSide();
-    let dst = dstPosition;
+    const newBoard = board.makeMove(selectedPos, targetPosition);
     if (newBoard === board) {
       // the board did not change, this means the destination move
-      // is invalid.
-      dst = null;
-      nextSide = side;
+      // is invalid, do nothing.
+      return;
     }
 
     this.updateState({
       board: newBoard,
-      src,
-      dst,
-      side: nextSide
+      selectedPos: null,
+      src: selectedPos,
+      dst: targetPosition,
+      side: this.getNextSide()
     });
   }
 
   setPromotion(type = PieceType.ROOK) {
-    const { board, src, dst, side } = this.state;
+    const { board } = this.state;
     const promotedBoard = board.setPromotion(type);
     this.updateState({ board: promotedBoard });
   }
 
-  render({ }, { board, src = [], dst = [], side = Side.WHITE }) {
+  render(
+    { },
+    {
+      board,
+      selectedPos = [],
+      src = [],
+      dst = [],
+      side = Side.WHITE
+    }) {
     const isValidMovePositionFn = (x2,y2) => {
       // if no src piece has been selected or both src and dst pieces
       // have already been selected, don't highlight anything.
-      if (src === null || dst !== null) {
+      if (selectedPos === null) {
         return false;
       }
 
-      const [x1, y1] = src;
-      const srcPiece = board.getPieceAt(x1, y1);
-      return MoveType.INVALID !== srcPiece.computeMoveType(board, x2, y2);
+      const [x1, y1] = selectedPos;
+      const selPiece = board.getPieceAt(x1, y1);
+      return MoveType.INVALID !== selPiece.computeMoveType(board, x2, y2);
     };
 
     const rows = board.getRows()
@@ -108,6 +115,7 @@ export class BoardUi extends Component {
                               row=${row}
                               onClickPiece=${(pos = []) => this.clickPiece(pos)}
                               isValidMovePositionFn=${isValidMovePositionFn}
+                              selectedPos=${selectedPos}
                               markedSrc=${src}
                               markedDst=${dst} />`);
     const boardUi = html`<table class='power-table'>${rows}</table>`;

@@ -38,13 +38,10 @@ body {
 }
 
 .power-table > .power-row > .square.white-square.valid-move {
-  /*background-color: rgba(8F, BC, 8F, 1);*/
   background-color: rgba(85, 107, 47, 0.25);
 }
 
 .power-table > .power-row > .square.black-square.valid-move {
-  /*background-color: #8FBC8F;*/
-  /*background-color: #556B2F;*/
   background-color: rgba(85, 107, 47, 0.5);
 }
 
@@ -55,10 +52,14 @@ body {
 }
 
 .power-table > .power-row > .src-piece {
-  border-color: blue;
+  border-color: cornflowerblue;
 }
 
 
 .power-table > .power-row > .dst-piece {
-  border-color: red;
+  border-color: blue;
+}
+
+.power-table > .power-row > .selected-piece {
+  border-color: green;
 }

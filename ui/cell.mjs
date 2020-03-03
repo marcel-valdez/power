@@ -95,6 +95,14 @@ export class CellUi extends Component {
     }
   }
 
+  getHtmlClassForSelection(isSelected = false) {
+    if (isSelected) {
+      return 'selected-piece';
+    } else {
+      return '';
+    }
+  }
+
   render(
     {
       piece = null,
@@ -103,6 +111,7 @@ export class CellUi extends Component {
       onClick = (pos = []) => {},
       isSrcPiece = false,
       isDstPiece = false,
+      isSelected = false,
       isValidMovePosition = false
     },
     { })
@@ -110,6 +119,7 @@ export class CellUi extends Component {
     const htmlContent = this.getHtmlContentForPiece(piece);
     let htmlClass = 'square' +
         ' ' + this.getHtmlClassForTurn(isSrcPiece, isDstPiece) +
+        ' ' + this.getHtmlClassForSelection(isSelected) +
         ' ' + this.getHtmlClassForPosition(x, y) +
         ' ' + this.getHtmlClassForPiece(piece) +
         ' ' + this.getHtmlClassForMoveValidity(isValidMovePosition);

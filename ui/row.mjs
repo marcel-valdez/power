@@ -10,18 +10,21 @@ export class RowUi extends Component {
     {
       y = 0,
       row = [],
+      selectedPos = [],
       markedSrc = [],
       markedDst = [],
       onClickPiece = (pos = []) => {},
       isValidMovePositionFn = (x, y) => false
     },
     { }) {
+    const [selX = -1, selY = -1] = selectedPos || [];
     const [srcX = -1, srcY = -1] = markedSrc || [];
     const [dstX = -1, dstY = -1] = markedDst || [];
     const pieces = row.map((piece = null, x = 0) => html`<${CellUi}
     x=${x}
     y=${y}
     piece=${piece}
+    isSelected=${x === selX && y === selY}
     isSrcPiece=${x === srcX && y === srcY}
     isDstPiece=${x === dstX && y === dstY}
     onClick=${() => onClickPiece([x, y])}
