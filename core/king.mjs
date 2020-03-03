@@ -40,6 +40,7 @@ function King(state = DEFAULT_STATE) {
 
       const maybeRook = board.getPieceAt(x, y);
       if (!(typeof maybeRook === 'undefined') &&
+          maybeRook !== null &&
           maybeRook.type == PieceType.ROOK &&
           this.isAlly(maybeRook) &&
           maybeRook.canCastle) {

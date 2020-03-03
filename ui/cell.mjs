@@ -73,17 +73,41 @@ export class CellUi extends Component {
       return '';
     }
 
+    let content = ``;
     switch(piece.type) {
     case PieceType.KNIGHT:
-      return piece.side == Side.WHITE ? '♘' : '♞';
+      content += piece.side == Side.WHITE ? '♘' : '♞';
+      break;
     case PieceType.PAWN:
-      return piece.side == Side.WHITE ? '♙' : '♟';
+      content += piece.side == Side.WHITE ? '♙' : '♟';
+      break;
     case PieceType.ROOK:
-      return piece.side == Side.WHITE ? '♖' : '♜';
+      content += piece.side == Side.WHITE ? '♖' : '♜';
+      break;
     case PieceType.KING:
-      return piece.side == Side.WHITE ? '♔' : '♚';
+      content += piece.side == Side.WHITE ? '♔' : '♚';
+      break;
     default:
       throw `Piece type ${piece.type} unknown.`;
+    }
+
+    if (piece.power !== 0) {
+      let classes="piece-power";
+      let powerStr;
+      if (piece.power < 0) {
+        powerStr = `${piece.power}`;
+        classes += " weak";
+      } else {
+        powerStr = `+${piece.power}`;
+        classes += " strong";
+      }
+
+      return html`${content}
+<div class="piece-power-container">
+  <div class="${classes}">${powerStr}</div>
+</div>`;
+    } else {
+      return html`${content}`;
     }
   }
 

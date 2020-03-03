@@ -63,3 +63,24 @@ body {
 .power-table > .power-row > .selected-piece {
   border-color: green;
 }
+
+.power-table > .power-row > .square > .piece-power-container {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.power-table > .power-row > .square > .piece-power-container > .piece-power {
+  position: absolute;
+  font-size: 12pt;
+  left: 2px;
+  top: -11px;
+}
+
+.power-table > .power-row > .square > .piece-power-container > .piece-power.weak {
+  color: crimson;
+}
+
+.power-table > .power-row > .square > .piece-power-container > .piece-power.strong {
+  color: forestgreen;
+}

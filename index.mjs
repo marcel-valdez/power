@@ -3,6 +3,9 @@ import { h, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
 import {BoardUi} from './ui/board.mjs';
+import utils from './core/utils.mjs';
+
+utils.disableLogging();
 
 // Initialize htm with Preact
 const html = htm.bind(h);

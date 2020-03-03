@@ -10,20 +10,20 @@
   - Effort: S
   - Value: Very high
   - Also highlight with green the square the mouse hovers over if it can move there
-  and highlight with red when it is invalid.
+    and highlight with red when it is invalid.
+- [DONE] ~~Indicate on the piece square what its current power is.~~
+  - Effort: S
+  - Value: Very High
+- Indicate what the probability of winning is when attacking a piece.
+  - Effort: S
+  - Value: Very High
+  - We could show the probability when you click on a piece and then hover over an enemy
+    piece.
 - Allow the user to undo an action.
   - Effort: S+
   - Value: Very High
   - Ambiguity: Very Low, we use the previous state and restore when the button is
   clicked, this is very easy to implement.
-- Indicate on the piece square what its current power is.
-  - Effort: S
-  - Value: High
-- Indicate what the probability of winning is when attacking a piece.
-  - Effort: S
-  - Value: High
-  - We could show the probability when you click on a piece and then hover over an enemy
-    piece.
 - Declare a winner when the game ends.
   - Effort: S
   - Value: High
