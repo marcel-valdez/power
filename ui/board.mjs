@@ -1,7 +1,7 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-import {Board, computeWinOdds} from '../core/board.mjs';
+import {Board, computePieceWinOdds} from '../core/board.mjs';
 import {MoveType, PieceType, Side} from '../core/power.common.mjs';
 import {RowUi} from '../ui/row.mjs';
 import {PromotionUi} from '../ui/promotion.mjs';
@@ -130,7 +130,8 @@ export class BoardUi extends Component {
       if (attacker.isAlly(defender)) {
         return 0.0;
       }
-      return computeWinOdds(attacker.power, defender.power);
+
+      return computePieceWinOdds(attacker, defender);
     };
 
     const rows = board.getRows()

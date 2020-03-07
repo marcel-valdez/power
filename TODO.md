@@ -14,7 +14,7 @@
 - [DONE] ~~Indicate on the piece square what its current power is.~~
   - Effort: S
   - Value: Very High
-- Indicate what the probability of winning is when attacking a piece.
+- [DONE] Indicate what the probability of winning is when attacking a piece.
   - Effort: S
   - Value: Very High
   - We could show the probability when you click on a piece and then hover over an enemy

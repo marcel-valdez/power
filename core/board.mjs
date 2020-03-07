@@ -76,6 +76,18 @@ function determineWinner(attackPower, defendPower) {
   }
 }
 
+function computePieceWinOdds(attacker, defender) {
+  let attackerPower = attacker.power;
+  let defenderPower = defender.power;
+  if (attacker.type === PieceType.KING) {
+    defenderPower = 0;
+  } else if (defender.type === PieceType.KING) {
+    attackerPower = 0;
+  }
+
+  return computeWinOdds(attackerPower, defenderPower);
+}
+
 function computeWinOdds(attackPower, defendPower) {
   const delta = 1 + Math.abs(attackPower - defendPower);
   const odds = 1 / (2**delta);
@@ -172,9 +184,6 @@ function Board(state = {
 }) {
   const _state = Object.freeze(Object.assign({}, state));
 
-  this.setup = () => {
-    // NO-OP for now
-  };
 
   Object.defineProperty(this, 'enPassant', {
     get() { return _state.enPassant; }
@@ -221,8 +230,6 @@ function Board(state = {
     const dstPiece = this.getPieceAt(x2, y2);
 
     // The king can't be sacrificed.
-    // TODO: Has not been tested
-    // NOTE: Should this be implemented on every piece's logic?
     if (dstPiece.type === PieceType.KING) {
       return this;
     }
@@ -242,7 +249,6 @@ function Board(state = {
     const [x1, y1] = src;
     const [x2, y2] = dst;
     const srcPiece = this.getPieceAt(x1, y1);
-    const dstPiece = this.getPieceAt(x2, y2);
     const { result, winner } = attack(srcPiece, this.enPassant);
     let squares = null;
     if (result === Winner.ATTACKER) {
@@ -277,11 +283,9 @@ function Board(state = {
 
   const doPromotionAttack = (src, dst) => {
     const [x2, y2] = dst;
-    // first do the attack
     const atkBoard = doAttack(src, dst);
-    // if the winner is the pawn
-    if (atkBoard.getPieceAt(x2, y2).type === PieceType.PAWN) {
-      // then do a promotion to the destination position
+    const winner = atkBoard.getPieceAt(x2, y2);
+    if (winner.type === PieceType.PAWN) {
       return doPromotion(src, dst);
     } else {
       return atkBoard;
@@ -289,7 +293,7 @@ function Board(state = {
   };
 
   const doCastle = (src, dst) => {
-    const [x1, y1] = src;
+    const [x1, ] = src;
     const [x2, y2] = dst;
     const {squares: origSquares} = _state;
     const rook = this.getPieceAt(x2, y2);
@@ -309,7 +313,6 @@ function Board(state = {
     }
 
     const srcPiece = this.getPieceAt(x1, y1);
-    const dstPiece = this.getPieceAt(x2, y2);
     if (srcPiece === null || srcPiece === undefined) {
       utils.warn(`There is no piece to move at (${src}).`);
       return this;
@@ -382,8 +385,7 @@ function Board(state = {
   this.isWithinBoundaries = (x, y) => x >= 0 && y >= 0 &&
     _state.squares.length > y && _state.squares[0].length > x;
 
-  this.setup();
   return this;
 }
 
-export { Board, computeWinOdds, computeSacrificePower };
+export { Board, computeWinOdds, computeSacrificePower, computePieceWinOdds };
