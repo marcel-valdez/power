@@ -1,6 +1,7 @@
 body {
-  font-family: 'Noto Sans';
+  font-family: 'Noto Sans', Sans-Serif;
   height: 100%;
+  font-size: calc(12px + 2 * ((100vw - 320px) / 880));
 }
 
 h1 {
@@ -9,6 +10,10 @@ h1 {
 }
 
 #power {
+
+}
+
+.board-container {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,7 +85,7 @@ h1 {
   position: absolute;
   font-size: 12pt;
   left: 2px;
-  top: -11px;
+  top: -15px;
 }
 
 .power-table > .power-row > .square > .piece-power-container > .piece-power.weak {
@@ -117,4 +122,46 @@ h1 {
 .square:hover .battletooltip {
   visibility: visible;
   display: block;
+}
+
+.reset-btn-container {
+  display: flex;
+  justify-content: center;
+}
+
+.reset-btn {
+  /* boxing */
+  margin-top: 10px;
+  box-shadow: 0 2px 5px 0 rgba(0,0,0,0.225);
+  box-sizing: border-box;
+  padding: 7.5725px;
+  /* border */
+  border-width: 2px;
+  border-radius: 3px;
+  border-style: outset;
+  /* text & font */
+  text-transform: uppercase;
+  font-family: 'Roboto';
+  font-weight: 400;
+}
+
+.modal {
+  position: absolute;
+  float: left;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+}
+
+.game-result {
+  border-width: 4px;
+  border-style: groove;
+  padding: 10px;
+
+  vertical-align: middle;
+  text-align: center;
+
+  font-size: 30pt;
+  font-family: 'Roboto';
 }

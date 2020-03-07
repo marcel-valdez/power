@@ -5,9 +5,6 @@ import {PieceType, Side} from '../core/power.common.mjs';
 
 
 const html = htm.bind(h);
-// TODO: In the future we probably want a different Cell type for each piece,
-// right now, state is good enough.
-
 
 class PromoCellUi extends Component {
   getCellHtmlContent(pieceType, side) {
@@ -36,7 +33,7 @@ export class PromotionUi extends Component {
   render({
     onClick = (type = PieceType.ROOK) => {},
     side = Side.WHITE }, { }) {
-    return html`<table class='power-table promotion-overlay'>
+    return html`<table class='power-table modal'>
 <tr class='power-row'>
 <${PromoCellUi}
   side=${side}

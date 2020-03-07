@@ -2,29 +2,38 @@ import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
 import {Board, computePieceWinOdds} from '../core/board.mjs';
-import {MoveType, PieceType, Side} from '../core/power.common.mjs';
+import {
+  GameStatus,
+  MoveType,
+  PieceType,
+  Side
+} from '../core/power.common.mjs';
 import {RowUi} from '../ui/row.mjs';
 import {PromotionUi} from '../ui/promotion.mjs';
+import {ResetButton} from '../ui/resetButton.mjs';
+import {GameEndedModal} from '../ui/gameEndedModal.mjs';
 
-// Initialize htm with Preact
 const html = htm.bind(h);
-// TODO: In the future we probably want a different Cell type for each piece,
-// right now, state is good enough.
 
-
+const DEFAULT_STATE = Object.freeze({
+  board: new Board(),
+  selectedPos: null,
+  src: null,
+  dst: null,
+  side: Side.WHITE
+});
 export class BoardUi extends Component {
-  state = {
-    board: new Board(),
-    selectedPos: null,
-    src: null,
-    dst: null,
-    side: Side.WHITE
-  };
+  state = Object.assign({}, DEFAULT_STATE);
 
   updateState(update) {
     this.setState(
           Object.assign({}, this.state, update));
   }
+
+  resetState() {
+    this.updateState(DEFAULT_STATE);
+  };
+
 
   getNextSide() {
     const {side} = this.state;
@@ -144,15 +153,26 @@ export class BoardUi extends Component {
                               selectedPos=${selectedPos}
                               markedSrc=${src}
                               markedDst=${dst} />`);
-    const boardUi = html`<table class='power-table'>${rows}</table>`;
-    if (board.pendingPromotion) {
-      const promoOverlay =
-            html`<${PromotionUi} side=${this.getNextSide()}
-                                 onClick=${(type) => this.setPromotion(type)}
-                 />`;
-      return html`${boardUi}<BR/>${promoOverlay}`;
-    } else {
-      return boardUi;
+    let boardUi = html`
+<div class='board-container'>
+  <table class='power-table'>${rows}</table>
+</div>
+<div class='reset-btn-container'>
+  <${ResetButton} onClick=${() => this.resetState()} />
+</div>`;
+
+    if (board.gameStatus !== GameStatus.IN_PROGRESS) {
+      boardUi = html`${boardUi}
+<${GameEndedModal} gameStatus=${board.gameStatus} />`;
+    } else if (board.pendingPromotion) {
+      boardUi = html`
+${boardUi}
+<${PromotionUi}
+  side=${this.getNextSide()}
+  onClick=${(type) => this.setPromotion(type)}
+/>`;
     }
+
+    return boardUi;
   }
 }

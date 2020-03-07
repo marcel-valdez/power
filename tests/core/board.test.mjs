@@ -7,7 +7,7 @@ import {Rook} from '../../core/rook.mjs';
 import {King} from '../../core/king.mjs';
 import {Knight} from '../../core/knight.mjs';
 import {Pawn} from '../../core/pawn.mjs';
-import {PieceType, Side} from '../../core/power.common.mjs';
+import {PieceType, Side, GameStatus} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import utils from '../../core/utils.mjs';
 
@@ -18,6 +18,7 @@ addTest('Can create board', () => {
   const board = new Board();
   // then
   assert.notNull(board);
+  assert.areSame(board.gameStatus, GameStatus.IN_PROGRESS);
 });
 
 addTest('Can get piece', () => {
@@ -247,7 +248,6 @@ addTest('Can promote piece via attack', () => {
   assert.equals(actualBoard.pendingPromotion, true);
 });
 
-
 addTest('Can castle the king', () => {
   utils.enableDebug();
   // given
@@ -277,4 +277,99 @@ addTest('Can castle the king', () => {
     assert.equals(actualRook.canCastle, false);
     assert.equals(actualKing.canCastle, false);
   });
+});
+
+addTest('Can set game ending King vs King (black win)', () => {
+  // given
+  const whiteKing = new King({
+    position: [0, 0],
+    side: Side.WHITE,
+    power: -200
+  });
+  const blackKing = new King({
+    position: [0, 1],
+    side: Side.BLACK,
+    power: 200
+  });
+  const board = new Board({
+    squares: [
+      [ whiteKing ],
+      [ blackKing ],
+    ]
+  });
+  // when
+  const endBoard = board.makeMove([0, 1], [0, 0]);
+  // then
+  assert.equals(endBoard.gameStatus, GameStatus.BLACK_WON);
+});
+
+addTest('Can set game ending King vs King (white win)', () => {
+  // given
+  const whiteKing = new King({
+    position: [0, 0],
+    side: Side.WHITE,
+    power: 200
+  });
+  const blackKing = new King({
+    position: [0, 1],
+    side: Side.BLACK,
+    power: -200
+  });
+  const board = new Board({
+    squares: [
+      [ whiteKing ],
+      [ blackKing ],
+    ]
+  });
+  // when
+  const endBoard = board.makeMove([0, 1], [0, 0]);
+  // then
+  assert.equals(endBoard.gameStatus, GameStatus.WHITE_WON);
+});
+
+
+addTest('Can set game ending Rook vs King (white win)', () => {
+  // given
+  const whiteTower = new Rook({
+    position: [0, 0],
+    side: Side.WHITE
+  });
+  const blackKing = new King({
+    position: [0, 1],
+    side: Side.BLACK,
+    power: -200
+  });
+  const board = new Board({
+    squares: [
+      [ whiteTower ],
+      [ blackKing ],
+    ]
+  });
+  // when
+  const endBoard = board.makeMove([0, 1], [0, 0]);
+  // then
+  assert.equals(endBoard.gameStatus, GameStatus.WHITE_WON);
+});
+
+addTest('Can set game ending Rook vs King (black win)', () => {
+  // given
+  const blackRook = new Rook({
+    position: [0, 0],
+    side: Side.BLACK
+  });
+  const whiteKing = new King({
+    position: [0, 1],
+    side: Side.WHITE,
+    power: -200
+  });
+  const board = new Board({
+    squares: [
+      [ blackRook ],
+      [ whiteKing ],
+    ]
+  });
+  // when
+  const endBoard = board.makeMove([0, 0], [0, 1]);
+  // then
+  assert.equals(endBoard.gameStatus, GameStatus.BLACK_WON);
 });

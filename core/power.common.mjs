@@ -26,7 +26,14 @@ const PieceType = Object.freeze({
   KING: 'KING'
 });
 
+const GameStatus = Object.freeze({
+  WHITE_WON: 'WHITE_WON',
+  BLACK_WON: 'BLACK_WON',
+  IN_PROGRESS: 'IN_PROGRESS'
+});
+
 export {
+  GameStatus,
   Winner,
   MoveType,
   Side,

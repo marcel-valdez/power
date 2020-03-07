@@ -1,6 +1,12 @@
 
 import {Knight} from '../core/knight.mjs';
-import {Winner, PieceType, MoveType, Side} from '../core/power.common.mjs';
+import {
+  Winner,
+  PieceType,
+  MoveType,
+  Side,
+  GameStatus,
+} from '../core/power.common.mjs';
 import {Rook} from '../core/rook.mjs';
 import {Pawn} from '../core/pawn.mjs';
 import {King} from '../core/king.mjs';
@@ -42,15 +48,7 @@ const STARTING_BOARD = Object.freeze([
 ]);
 
 function attack(attacker, defender) {
-  let winner;
-  if (attacker.type === PieceType.KING) {
-    winner = determineWinner(attacker.power, 0);
-  } else if (defender.type === PieceType.KING) {
-    winner = determineWinner(0, defender.power);
-  } else {
-    winner = determineWinner(attacker.power, defender.power);
-  }
-
+  let winner = determineWinner(attacker, defender);
   if (winner === Winner.ATTACKER) {
     return {
       result: winner,
@@ -67,8 +65,8 @@ function attack(attacker, defender) {
   }
 }
 
-function determineWinner(attackPower, defendPower) {
-  const winOdds = computeWinOdds(attackPower, defendPower);
+function determineWinner(attacker, defender) {
+  const winOdds = computePieceWinOdds(attacker, defender);
   if (realizeOdds(winOdds)) {
     return Winner.ATTACKER;
   } else {
@@ -79,9 +77,10 @@ function determineWinner(attackPower, defendPower) {
 function computePieceWinOdds(attacker, defender) {
   let attackerPower = attacker.power;
   let defenderPower = defender.power;
-  if (attacker.type === PieceType.KING) {
+  if (attacker.type === PieceType.KING && defender.type !== PieceType.KING) {
     defenderPower = 0;
-  } else if (defender.type === PieceType.KING) {
+  } else if (defender.type === PieceType.KING &&
+             attacker.type !== PieceType.KING) {
     attackerPower = 0;
   }
 
@@ -177,12 +176,15 @@ function movePiece(squares, src, dst) {
   };
 }
 
-function Board(state = {
+const DEFAULT_BOARD_STATE = {
   squares: STARTING_BOARD,
   enPassant: null,
-  promotion: null
-}) {
-  const _state = Object.freeze(Object.assign({}, state));
+  promotion: null,
+  gameStatus: GameStatus.IN_PROGRESS
+};
+
+function Board(state = DEFAULT_BOARD_STATE) {
+  const _state = Object.freeze(Object.assign({}, DEFAULT_BOARD_STATE, state));
 
 
   Object.defineProperty(this, 'enPassant', {
@@ -191,6 +193,10 @@ function Board(state = {
 
   Object.defineProperty(this, 'pendingPromotion', {
     get() { return _state.promotion !== null; }
+  });
+
+  Object.defineProperty(this, 'gameStatus', {
+    get() { return _state.gameStatus; }
   });
 
   this.copy = (copyState = null) => {
@@ -207,19 +213,40 @@ function Board(state = {
     return this.copy({ squares, enPassant });
   };
 
+
+  const computeGameStatus = (outcome, attacker, defender) => {
+    let gameStatus = this.gameStatus;
+    if (outcome.result === Winner.ATTACKER &&
+        defender.type === PieceType.KING) {
+      gameStatus = outcome.winner.side === Side.WHITE ?
+        GameStatus.WHITE_WON : GameStatus.BLACK_WON;
+    }
+
+    if (
+      outcome.result === Winner.DEFENDER &&
+      attacker.type === PieceType.KING) {
+      gameStatus = outcome.winner.side === Side.BLACK ?
+        GameStatus.BLACK_WON : GameStatus.WHITE_WON;
+    }
+
+    return gameStatus;
+  };
+
   const doAttack = (src, dst) => {
     const [x1, y1] = src;
     const [x2, y2] = dst;
-    const srcPiece = this.getPieceAt(x1, y1);
-    const dstPiece = this.getPieceAt(x2, y2);
-    const result = attack(srcPiece, dstPiece);
+    const attacker = this.getPieceAt(x1, y1);
+    const defender = this.getPieceAt(x2, y2);
+    const result = attack(attacker, defender);
+
     return this.copy({
       // remove piece from src
       squares: removePiece(
         // set winner piece at dst
         setPiece(_state.squares, result.winner, x2, y2),
         x1, y1),
-      enPassant: null
+      enPassant: null,
+      gameStatus: computeGameStatus(result, attacker, defender)
     });
   };
 
