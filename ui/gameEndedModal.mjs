@@ -1,10 +1,6 @@
-import { h, Component, render } from 'https://unpkg.com/preact?module';
-import htm from 'https://unpkg.com/htm?module';
-
+import {html, Component} from '../ui/renderer.mjs';
 import {GameStatus} from '../core/power.common.mjs';
 
-
-const html = htm.bind(h);
 
 export class GameEndedModal extends Component {
   render({ gameStatus = GameStatus.WHITE_WON }, { }) {

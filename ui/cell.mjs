@@ -1,13 +1,9 @@
-import { h, Component, render } from 'https://unpkg.com/preact?module';
-import htm from 'https://unpkg.com/htm?module';
-
+import {html, Component} from '../ui/renderer.mjs';
 import {PieceType, Side} from '../core/power.common.mjs';
 
-// Initialize htm with Preact
-const html = htm.bind(h);
+
 // TODO: In the future we probably want a different Cell type for each piece,
 // right now, state is good enough.
-
 export class CellUi extends Component {
 
   getHtmlClassForSide(side = Side.WHITE) {
@@ -73,7 +69,7 @@ export class CellUi extends Component {
       return '';
     }
 
-    let content = ``;
+    let content = '';
     switch(piece.type) {
     case PieceType.KNIGHT:
       content += piece.side == Side.WHITE ? '♘' : '♞';
@@ -92,14 +88,14 @@ export class CellUi extends Component {
     }
 
     if (piece.power !== 0) {
-      let classes="piece-power";
+      let classes='piece-power';
       let powerStr;
       if (piece.power < 0) {
         powerStr = `${piece.power}`;
-        classes += " weak";
+        classes += ' weak';
       } else {
         powerStr = `+${piece.power}`;
-        classes += " strong";
+        classes += ' strong';
       }
 
       return html`${content}

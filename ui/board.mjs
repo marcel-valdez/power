@@ -1,6 +1,4 @@
-import { h, Component, render } from 'https://unpkg.com/preact?module';
-import htm from 'https://unpkg.com/htm?module';
-
+import {html, Component} from '../ui/renderer.mjs';
 import {Board, computePieceWinOdds} from '../core/board.mjs';
 import {
   GameStatus,
@@ -15,7 +13,6 @@ import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
 import utils from '../core/utils.mjs';
 
-const html = htm.bind(h);
 
 const DEFAULT_STATE = Object.freeze({
   board: new Board(),

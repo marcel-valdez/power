@@ -1,16 +1,11 @@
-
-import { h, render } from 'https://unpkg.com/preact?module';
-import htm from 'https://unpkg.com/htm?module';
-
+import {html, render} from '../ui/renderer.mjs';
 import {BoardUi} from './ui/board.mjs';
 import utils from './core/utils.mjs';
 
 utils.disableLogging();
 
-// Initialize htm with Preact
-const html = htm.bind(h);
-
-// NOTE: When we start receiving board updates from the server, we will have to
-// pass back & forth the board's state, therefore it'll be props, not state.
+// NOTE: When we start receiving board updates from the server, we will have
+// to pass back & forth the board's state, therefore it'll be props, not
+// state.
 const app = html`<${BoardUi} />`;
 render(app, document.getElementById('power'));
