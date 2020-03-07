@@ -124,12 +124,12 @@ h1 {
   display: block;
 }
 
-.reset-btn-container {
+.btn-container {
   display: flex;
   justify-content: center;
 }
 
-.reset-btn {
+.btn {
   /* boxing */
   margin-top: 10px;
   box-shadow: 0 2px 5px 0 rgba(0,0,0,0.225);

@@ -11,7 +11,9 @@ import {
 import {RowUi} from '../ui/row.mjs';
 import {PromotionUi} from '../ui/promotion.mjs';
 import {ResetButton} from '../ui/resetButton.mjs';
+import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
+import utils from '../core/utils.mjs';
 
 const html = htm.bind(h);
 
@@ -24,16 +26,28 @@ const DEFAULT_STATE = Object.freeze({
 });
 export class BoardUi extends Component {
   state = Object.assign({}, DEFAULT_STATE);
+  stateStack = [DEFAULT_STATE];
 
   updateState(update) {
     this.setState(
-          Object.assign({}, this.state, update));
+      Object.assign({}, this.state, update));
   }
 
   resetState() {
+    this.stateStack = [DEFAULT_STATE];
     this.updateState(DEFAULT_STATE);
   };
 
+  pushState(undoState) {
+    this.stateStack.push(undoState);
+  }
+
+  popState() {
+    if (this.stateStack.length === 1) {
+      utils.log('No more moves to undo.');
+    }
+    this.setState(this.stateStack.pop());
+  }
 
   getNextSide() {
     const {side} = this.state;
@@ -82,13 +96,18 @@ export class BoardUi extends Component {
       return;
     }
 
-    this.updateState({
+    const newState = {
       board: newBoard,
       selectedPos: null,
       src: selectedPos,
       dst: targetPosition,
       side: this.getNextSide()
-    });
+    };
+
+    this.pushState(Object.assign({}, this.state, {
+      selectedPos: null
+    }));
+    this.updateState(newState);
   }
 
   setPromotion(type = PieceType.ROOK) {
@@ -108,8 +127,6 @@ export class BoardUi extends Component {
     }) {
 
     const isValidMovePositionFn = (x2,y2) => {
-      // if no src piece has been selected or both src and dst pieces
-      // have already been selected, don't highlight anything.
       if (selectedPos === null) {
         return false;
       }
@@ -145,20 +162,23 @@ export class BoardUi extends Component {
 
     const rows = board.getRows()
           .map((row = [], y = 0) =>
-               html`<${RowUi} y=${y}
-                              row=${row}
-                              onClickPiece=${(pos = []) => this.clickPiece(pos)}
-                              isValidMovePositionFn=${isValidMovePositionFn}
-                              oddsForPieceFn=${oddsForPieceFn}
-                              selectedPos=${selectedPos}
-                              markedSrc=${src}
-                              markedDst=${dst} />`);
+               html`
+<${RowUi} y=${y}
+          row=${row}
+          onClickPiece=${(pos = []) => this.clickPiece(pos)}
+          isValidMovePositionFn=${isValidMovePositionFn}
+          oddsForPieceFn=${oddsForPieceFn}
+          selectedPos=${selectedPos}
+          markedSrc=${src}
+          markedDst=${dst} />`);
+
     let boardUi = html`
 <div class='board-container'>
   <table class='power-table'>${rows}</table>
 </div>
-<div class='reset-btn-container'>
+<div class='btn-container'>
   <${ResetButton} onClick=${() => this.resetState()} />
+  <${UndoButton} onClick=${() => this.popState()} />
 </div>`;
 
     if (board.gameStatus !== GameStatus.IN_PROGRESS) {

@@ -1,18 +1,12 @@
 import { h, Component, render } from 'https://unpkg.com/preact?module';
 import htm from 'https://unpkg.com/htm?module';
 
-
 const html = htm.bind(h);
 
-export class ResetButton extends Component {
+export class UndoButton extends Component {
   render({ onClick = () => {} }, { }) {
-    return html`
-<button
-  class='btn'
-  type='button'
-  title='Reset the board to initial state.'
-  onClick=${onClick}>
-RESET
+    return html`<button title="Undo last action" class='btn' type='button' onClick=${onClick}>
+⤺
 </button>`;
   }
 }

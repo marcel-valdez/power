@@ -1,32 +1,40 @@
 # Missing Features
 
-## Local Gameplay
+## Local Gameplay Features
 
-- Add resign button to give up.
-  - Effort: S
-  - Value: High
-- Provide feedback to the user when an invalid action is taken.
-  - Effort: S+
-  - Value: Medium to High.
-  - Ambiguity: Very Low.
 - Use animations for battles.
   - Effort: M
   - Value: Medium to High
-  - Suggestion: "Vibrate" the battling pieces and then fade out the one that lost.
+  - Suggestion: "Vibrate" the battling pieces and then fade out the one that
+    lost.
     - When the defender wins:
-      - The attacker fades out and at the same time the defender stops vibrating.
+      - The attacker fades out and at the same time the defender stops
+        vibrating.
     - When the attacker wins:
-      1. At the same time that the defender fades out, the attacker stops vibrating.
+      1. At the same time that the defender fades out, the attacker stops
+         vibrating.
       2. Once the defender has faded out, the attacker disappears.
       3. Then instantly reappears in the defender's position.
+- Add resign button to give up.
+  - Effort: S
+  - Value: Medium
+- Allow the user to redo an action.
+  - Effort: XS+
+  - Value: Medium
+  - Ambiguity: Very Low, we use the previous state and restore when the button
+    is clicked, this is very easy to implement.
 - Improve UI to make it more user-friendly (mobile and web).
   - Effort: L-
   - Value: Very High
   - Ambiguity: Medium to High
   - Suggestion:
   - lichess.org UI is pretty simple & good, we can borrow their ideas.
+- Provide feedback to the user when an invalid action is taken.
+  - Effort: S+
+  - Value: Medium.
+  - Ambiguity: Very Low.
 
-## Multi-player Gameplay
+## Multi-player Gameplay Features
 
 - Two people can play together, nothing is recorded, nothing is stored.
   - Effort: M+
@@ -52,8 +60,13 @@
   - Value: Very High
   - Ambiguity: Very High
 
-## Done Feature
+## Done Features
 
+- [DONE] ~~Allow the user to undo an action.~~
+  - Effort: S+
+  - Value: Very High
+  - Ambiguity: Very Low, we use the previous state and restore when the button
+    is clicked, this is very easy to implement.
 - [DONE] ~~Change the way we highlight the squares of the last move to something more
   intuitive.~~
   - Effort: XS-
@@ -76,8 +89,3 @@
 - ~~[DONE] Declare a winner when the game ends.~~
   - Effort: S
   - Value: Very High
-- Allow the user to undo an action.
-  - Effort: S+
-  - Value: Very High
-  - Ambiguity: Very Low, we use the previous state and restore when the button
-  is clicked, this is very easy to implement.
