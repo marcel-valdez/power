@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 
-watchfile --recursive --regx '.*\.mjs$' --directory $(pwd) /home/marcel/projects/power/handle_watched_file.sh __file__
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}" "${DIR}/handle_watched_file.sh" __file__
+

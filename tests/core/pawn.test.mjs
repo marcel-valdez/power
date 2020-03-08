@@ -9,10 +9,10 @@ addTest(
   () => {
     // given
     // when
-    const target = new Pawn();
+    const target = new Pawn({ position: [3,3] });
     // then
-    assert.equals(target.x, 0);
-    assert.equals(target.y, 0);
+    assert.equals(target.x, 3);
+    assert.equals(target.y, 3);
     assert.equals(target.power, 0);
     assert.equals(target.side, Side.WHITE);
   });

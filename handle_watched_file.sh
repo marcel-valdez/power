@@ -31,7 +31,7 @@ function get_test_file {
   filename=$(basename ${src_file})
   dirpath=$(dirname ${src_file})
 
-  test_dirpath=${dirpath/core/tests\/core/}
+  test_dirpath=${dirpath/power/power\/tests/}
   test_filename=${filename/\.mjs/.test.mjs}
   echo ${test_dirpath}/${test_filename}
 }

@@ -8,49 +8,78 @@ class AssertionError extends Error {
   }
 }
 
-const write = (msg) => {
+const write = (msg, elementId = null) => {
   if(!isBrowser) return;
-  const body = document.querySelector('body');
+  let element = null;
+  if (elementId === null) {
+    element = document.querySelector('body');
+  } else {
+    element = document.getElementById(elementId);
+  }
+
   const escaped = msg.replace(/\n/g, '<BR>');
-  const result = `<p>${escaped}</p>`;
-  body.innerHTML += result;
-}
+  element.innerHTML += `<p>${escaped}</p>`;
+};
 
 function docReady(fn) {
   // see if DOM is already available
   if (isBrowser) {
-    if (document.readyState === "complete" ||
-        document.readyState === "interactive") {
+    if (document.readyState === 'complete' ||
+        document.readyState === 'interactive') {
       // call on next available tick
       setTimeout(fn, 1);
     } else {
-      document.addEventListener("DOMContentLoaded", fn);
+      document.addEventListener('DOMContentLoaded', fn);
     }
   } else {
     setTimeout(fn, 1);
   }
 }
 
+let testEntriesElementId = 'test-framework-entries';
+const setTestEntriesElementId = (id) => {
+  testEntriesElementId = id;
+};
+
 const tests = [];
 
-const testsPromise = new Promise((resolve, reject) => {
-  const loopWait = () => {
-    if(tests.length > 0) {
-      resolve(tests);
-    } else {
-      setTimeout(() => loopWait(), 10);
-    }
+function defer() {
+  const deferred = {
+    promise: null,
+    resolve: null,
+    isResolved: false,
+    reject: null,
+    isRejected: false
   };
 
-  loopWait();
-});
+  deferred.promise = new Promise((_resolve, _reject) => {
+    deferred.resolve = (value) => {
+      if (!deferred.isResolved && !deferred.isRejected) {
+        utils.debug(`Deferred promise resolved with: ${value}`);
+        _resolve(value);
+        deferred.isResolved = true;
+      }
+    };
+    deferred.reject = (error) => {
+      if (!deferred.isRejected && !deferred.isRejected) {
+        utils.debug(`Deferred promise rejected with: ${error}`);
+        _reject(error);
+        deferred.isRejected = true;
+      }
+    };
+  });
 
+  return deferred;
+}
+
+const deferredTests = defer();
 async function getTests() {
-  if (tests.length > 0) {
-    return tests;
-  } else {
-    return await testsPromise;
-  }
+  return await deferredTests.promise;
+}
+
+const deferredResults = defer();
+async function getResults() {
+  return await deferredResults.promise;
 }
 
 const addTest = (title, testFn) => {
@@ -59,28 +88,33 @@ const addTest = (title, testFn) => {
     title,
     testFn
   });
+  utils.debug(`Resolving tests, length: ${tests.length}`);
+  deferredTests.resolve(tests);
 };
 
 const reportResult = (title = '', result, error = '') => {
   if (error) {
     utils.log(`${title}: ${result}\n${error.stack}`);
-    write(`${title} <font color="red">${result}</font><br/>${error.stack}`);
+    write(
+      `${title} <font color="red">${result}</font><br/>${error.stack}`,
+      testEntriesElementId);
   } else {
     utils.log(`${title}: ${result}`);
-    write(`${title} <font color="green">${result}</font>`);
+    write(`${title} <font color="green">${result}</font>`,
+      testEntriesElementId);
   }
 };
 
 function runTest(test = { testFn: () => {}, title: '' }) {
   try {
     test.testFn();
-    reportResult(test.title, "PASS");
+    reportResult(test.title, 'PASS');
     return { passed: true, error: null };
   } catch (error) {
     if (error instanceof AssertionError) {
-      reportResult(test.title, "FAIL", error);
+      reportResult(test.title, 'FAIL', error);
     } else {
-      reportResult(test.title, "EXCEPTION", error);
+      reportResult(test.title, 'EXCEPTION', error);
     }
 
     return { pass: false, error };
@@ -88,24 +122,27 @@ function runTest(test = { testFn: () => {}, title: '' }) {
 }
 
 function processResults(
-  results = { fail_count: 0, pass_count: 0 }) {
+  results = { fail_count: 0, pass_count: 0 },
+  elementId = 'test-framework-results') {
 
   const { pass_count, fail_count } = results;
   const total_count = pass_count + fail_count;
   let resultMsg = `PASSED: ${pass_count}/${total_count}`;
   if (fail_count > 0) {
-     resultMsg += `\nFAILED: ${fail_count}/${total_count}`;
+    resultMsg += `\nFAILED: ${fail_count}/${total_count}`;
   }
   utils.info(resultMsg);
-  write(resultMsg);
+  write(resultMsg, 'test-framework-results');
 }
 
-async function runTests() {
+async function runTests(
+  render = ({fail_count, pass_count}) => processResults({ fail_count, pass_count })) {
   let pass_count = 0;
   let fail_count = 0;
-  utils.debug("Waiting for tests...");
+  utils.debug('Waiting for tests...');
   const tests = await getTests();
-  utils.log("Running tests.");
+  utils.debug(`Tests available: ${tests.length}`);
+  utils.log('Running tests.');
   try {
     while (tests.length > 0) {
       const result = runTest(tests.shift());
@@ -113,7 +150,8 @@ async function runTests() {
       else { fail_count++; }
     }
   } finally {
-    processResults({
+    deferredResults.resolve({ fail_count, pass_count });
+    render({
       fail_count,
       pass_count
     });
@@ -127,9 +165,96 @@ async function runTests() {
   }
 }
 
+const toJSON = (value) => JSON.stringify(value);
+
+const makeActualExpectedMsg = (actual, expected) => {
+  const actualJson = JSON.stringify(actual);
+  const expectedJson = JSON.stringify(expected);
+  return `Actual: ${actualJson}\nExpected: ${expectedJson}`;
+};
+
+const compareArray = (actual, expected, message = '') => {
+  if (!Array.isArray(actual)) {
+    throw new AssertionError(
+      `${message}` +
+        `\nExpected an array but got ${typeof(actual)}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  if (actual.length !== expected.length) {
+    throw new AssertionError(
+      `${message}` +
+        `\nExpected an array of length: ${expected.length}, ` +
+        `but got an array of length ${actual.length}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  const unmatchedItems = actual.filter(
+    (actualItem) => !expected.some(
+      (expectedItem) => assert.deepEquals(actualItem, expectedItem)));
+  if (unmatchedItems.length > 0) {
+    throw new AssertionError(
+      `${message}` +
+        `\nThere were ${unmatchedItems.length} items that weren't ` +
+        'in the expected array.' +
+        `\nItems: ${unmatchedItems}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+};
+
+const isObject = (maybeObj) => !Array.isArray(maybeObj)
+      && typeof(maybeObj) === 'object';
+
+const compareObject = (actual, expected, message = '') => {
+  if (!isObject(actual)) {
+    throw new AssertionError(`${message}` +
+                             `\nExpected an object but found: ${actual}` +
+                             `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  const actualKeys = Object.keys(actual);
+  const expectedKeys = Object.keys(expected);
+
+  const unmatchedActualKeys = actualKeys.filter(
+    (actualKey) => !expectedKeys.includes(actualKey));
+  const unmatchedExpectedKeys = expectedKeys.filter(
+    (expectedKey) => !actualKeys.includes(expectedKey));
+
+  if (unmatchedActualKeys.length > 0) {
+    throw new AssertionError(
+      'Some keys not found in the expected object.' +
+        `\nUnmatched keys: ${unmatchedActualKeys}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  if (unmatchedExpectedKeys.length > 0) {
+    throw new AssertionError(
+      'Some expected keys not found in the actual object.' +
+        `\nMissing keys: ${unmatchedExpectedKeys}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  const nonMatches = actualKeys.map((key) =>  {
+    try {
+      return assert.deepEquals(actualKeys[key],  expectedKeys[key]);
+    } catch(error) {
+      return error;
+    }
+  }).filter((outcome) => outcome !== true);
+
+  if (nonMatches.length > 0) {
+    const errors = nonMatches.map((error) => error.message)
+      .join('\n');
+    const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
+    throw new AssertionError(message);
+  }
+
+  return true;
+};
+
 const assert = {
   makeErrorMsg: (actual, expected, title, diffMsg) => {
-    let msg = `${actual} ${diffMsg} ${expected}`;
+    let msg = `${toJSON(actual)} ${diffMsg} ${toJSON(expected)}`;
     if (title) {
       msg = `${title}\n${msg}`;
     }
@@ -170,13 +295,28 @@ const assert = {
       }
       throw msg;
     }
+  },
+  deepEquals: (actual, expected, message = '') => {
+    if (actual === expected) {
+      return true;
+    }
+
+    if (Array.isArray(expected)) {
+      return compareArray(actual, expected, message);
+    } else if (typeof(expected) === 'object') {
+      return compareObject(actual, expected, message);
+    } else {
+      return assert.equals(actual, expected, message);
+    }
   }
 };
 
 docReady(_ => runTests());
 
 export {
+  docReady,
   addTest,
   runTests,
   assert,
+  setTestEntriesElementId
 };

@@ -8,7 +8,10 @@ const DEFAULT_STATE = Object.freeze({
 
 function Pawn(state = DEFAULT_STATE) {
   const _state = Object.freeze(
-    Object.assign({ type: PieceType.PAWN }, DEFAULT_STATE, state));
+    Object.assign(
+      { type: PieceType.PAWN },
+      DEFAULT_STATE,
+      state));
 
   applyProps(this, _state);
 
