@@ -164,7 +164,7 @@ addTest('computeBoardHash: full board', () => {
 addTest('Engine.computeMove: first move', () => {
   // given
   const board = new Board();
-  const maxDepth = 4;
+  const maxDepth = 3;
   const engine = new Engine({ maxDepth });
   // when
   utils.info('[START] engine.computeMove');
@@ -187,26 +187,17 @@ addTest('Engine.computeMove: first move', () => {
 addTest('Engine.computeMove: caches results', () => {
   // given
   const board = new Board();
-  const maxDepth = 4;
+  const maxDepth = 3;
   const engine = new Engine({ maxDepth });
   utils.disableLogging();
-  engine.computeMove(board, Side.WHITE);
-  utils.enableLogging();
+  const original = engine.computeMove(board, Side.WHITE);
+  const prevCacheHits = engine.cacheHits;
   // when
-  utils.info('[START] engine.computeMove');
   const result = engine.computeMove(board, Side.WHITE);
   utils.enableLogging();
-  utils.info('[END] engine.computeMove');
   // then
-  utils.info('depth:', maxDepth);
-  utils.info('cacheHits:', engine.cacheHits);
-  utils.info('whiteCache:', engine.whiteCache.totalSize());
-  utils.info('blackCache:', engine.blackCache.totalSize());
-  utils.info('duration seconds:', engine.lastDuration() / 1000);
-  utils.info('result:', JSON.stringify(result));
-  assert.notNull(result);
-  assert.notNull(result.score);
-  assert.notNull(result.action);
+  assert.equals(engine.cacheHits, prevCacheHits + 1);
+  assert.areSame(result, original);
 });
 
 function checkBoardsHaveDifferentHash(squaresA, squaresB) {
