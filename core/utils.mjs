@@ -8,6 +8,10 @@ const enableDebug = () => {
   DEBUG = true;
 };
 
+const disableDebug = () => {
+  DEBUG = false;
+};
+
 const disableInfo = () => {
   INFO = false;
   DEBUG = false;
@@ -27,11 +31,15 @@ const disableLogging = () => {
   DISABLE_LOGGING = true;
 };
 
-const log = (msg) => !DISABLE_LOGGING && console && console.log(msg);
-const debug = (msg) => DEBUG && log('DEBUG: ' + msg);
-const info = (msg) => INFO && log('INFO: ' + msg);
-const warn = (msg) => WARNING && log('WARN: ' + msg);
-const error = (msg) => ERROR && log('ERROR: ' + msg);
+const enableLogging = () => {
+  DISABLE_LOGGING = false;
+};
+
+const log = (...msg) => !DISABLE_LOGGING && console && console.log(...msg);
+const debug = (...msg) => DEBUG && log('DEBUG: ', ...msg);
+const info = (...msg) => INFO && log('INFO: ', ...msg);
+const warn = (...msg) => WARNING && log('WARN: ', ...msg);
+const error = (...msg) => ERROR && log('ERROR: ', ...msg);
 
 const isNotNullOrUndefined = (obj) => {
   return typeof(obj) !== 'undefined' &&
@@ -47,6 +55,8 @@ export default {
   disableWarning,
   disableError,
   disableLogging,
+  enableLogging,
+  disableDebug,
   enableDebug,
   debug,
   info,

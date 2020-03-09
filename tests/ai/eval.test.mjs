@@ -1,49 +1,14 @@
-import {
-  Board,
-  computeWinOdds,
-  computeSacrificePower
-} from '../../core/board.mjs';
+import {Board} from '../../core/board.mjs';
 import {Rook} from '../../core/rook.mjs';
 import {King} from '../../core/king.mjs';
 import {Knight} from '../../core/knight.mjs';
 import {Pawn} from '../../core/pawn.mjs';
-import {PieceType, Side, GameStatus} from '../../core/power.common.mjs';
+import {Side} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
-import utils from '../../core/utils.mjs';
 import {evaluate, genActions} from '../../ai/eval.mjs';
-
-const PIECE_SCORES = {
-  'PAWN': 1.0,
-  'KNIGHT': 2.5,
-  'ROOK': 5.0,
-  'KING': ((1*8) + (2.5*2) + (5.0*2))*8
-};
-
-
-const whtPawn = (x, y, power = 0) =>
-  new Pawn({ side: Side.WHITE, position: [x,y], power });
-
-const blkPawn = (x, y, power = 0) =>
-  new Pawn({ side: Side.BLACK, position: [x,y], power });
-
-const whtKnight = (x, y, power = 0) =>
-  new Knight({ side: Side.WHITE, position: [x,y], power });
-
-const blkKnight = (x, y, power = 0) =>
-  new Knight({ side: Side.BLACK, position: [x,y], power });
-
-const whtRook = (x, y, power = 0) =>
-  new Rook({ side: Side.WHITE, position: [x,y], power });
-
-const blkRook = (x, y, power = 0) =>
-  new Rook({ side: Side.BLACK, position: [x,y], power });
-
-const whtKing = (x, y, power = 0) =>
-  new King({ side: Side.WHITE, position: [x,y], power });
-
-const blkKing = (x, y, power = 0) =>
-  new King({ side: Side.BLACK, position: [x,y], power });
-
+import {
+  blkPawn, blkKnight, blkRook, whtPawn, whtKnight, whtKing, whtRook
+} from '../../tests/power_test_utils.mjs';
 
 
 addTest('evaluate: Starting board has score of 0.0', () => {
@@ -61,19 +26,19 @@ addTest(
     [
       {
         board: [ new Pawn({ side: Side.WHITE }) ],
-        score: 1.0
+        score: 1.5
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: 5.0
+        score: 7.5
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
-        score: 2.5
+        score: 3.75
       },
       {
         board: [ new King({ side: Side.WHITE }) ],
-        score: ((1*8) + (2.5*2) + (5.0*2))*8
+        score: ((1*8) + (2.5*2) + (5.0*2))*12
       }
     ].forEach(({ board, score: expected }) => {
 
@@ -94,19 +59,19 @@ addTest(
     [
       {
         board: [ new Pawn({ side: Side.BLACK }) ],
-        score: -1.0
+        score: -1.5
       },
       {
         board: [ new Rook({ side: Side.BLACK }) ],
-        score: -5.0
+        score: -7.5
       },
       {
         board: [ new Knight({ side: Side.BLACK }) ],
-        score: -2.5
+        score: -3.75
       },
       {
         board: [ new King({ side: Side.BLACK }) ],
-        score: -(((1*8) + (2.5*2) + (5.0*2))*8)
+        score: -(((1*8) + (2.5*2) + (5.0*2))*12)
       }
     ].forEach(({ board, score: expected }) => {
 
@@ -127,19 +92,19 @@ addTest(
     [
       {
         board: [ new Pawn({ side: Side.WHITE }) ],
-        score: -1.0
+        score: -1.5
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: -5.0
+        score: -7.5
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
-        score: -2.5
+        score: -3.75
       },
       {
         board: [ new King({ side: Side.WHITE }) ],
-        score: -(((1*8) + (2.5*2) + (5.0*2))*8)
+        score: -(((1*8) + (2.5*2) + (5.0*2))*12)
       }
     ].forEach(({ board, score: expected }) => {
 
@@ -160,19 +125,19 @@ addTest(
     [
       {
         board: [ new Pawn({ side: Side.BLACK }) ],
-        score: 1.0
+        score: 1.5
       },
       {
         board: [ new Rook({ side: Side.BLACK }) ],
-        score: 5.0
+        score: 7.5
       },
       {
         board: [ new Knight({ side: Side.BLACK }) ],
-        score: 2.5
+        score: 3.75
       },
       {
         board: [ new King({ side: Side.BLACK }) ],
-        score: ((1*8) + (2.5*2) + (5.0*2))*8
+        score: ((1*8) + (2.5*2) + (5.0*2))*12
       }
     ].forEach(({ board, score: expected }) => {
 
@@ -195,19 +160,19 @@ addTest(
         board: [
           new Pawn({ power: -1 })
         ],
-        score: 0.5
-      },
-      {
-        board: [ new Rook({ power: -1 }) ],
-        score: 2.5
-      },
-      {
-        board: [ new Knight({ power: -1 }) ],
         score: 1.25
       },
       {
+        board: [ new Rook({ power: -1 }) ],
+        score: 6.25
+      },
+      {
+        board: [ new Knight({ power: -1 }) ],
+        score: 3.125
+      },
+      {
         board: [ new King({ power: -1 }) ],
-        score: ((1*8) + (2.5*2) + (5.0*2))*4
+        score: ((1*8) + (2.5*2) + (5.0*2))*10
       }
     ].forEach(({ board, score: expected }) => {
 
@@ -230,21 +195,21 @@ addTest(
         board: [
           new Pawn({ side: Side.BLACK, power: -2 })
         ],
-        score: -0.25
+        score: -1.125
       },
       {
         board: [ new Rook({ side: Side.BLACK, power: -2 }) ],
-        score: -1.25
+        score: -5.625
       },
       {
         board: [ new Knight({ side: Side.BLACK, power: -2 }) ],
-        score: -0.625
+        score: -2.8125
       },
       {
         board: [ new King({ side: Side.BLACK, power: -2 }) ],
         // the weaker the king, the more worthwhile it is to attack him
         // but then it also means that the enemy has "more value"
-        score: -((1*8) + (2.5*2) + (5.0*2))*2
+        score: -((1*8) + (2.5*2) + (5.0*2))*9
       }
     ].forEach(({ board, score: expected }) => {
 
@@ -384,7 +349,7 @@ addTest(
       const board = new Board({ squares });
       // when
       const actualActions = genActions(board, Side.WHITE);
-      // thenn
+      // then
       assert.deepEquals(actualActions, actions);
     });
   });

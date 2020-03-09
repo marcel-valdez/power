@@ -6,10 +6,7 @@ import {
   Side
 } from '../core/power.common.mjs';
 import {
-  Board,
-  computeWinOdds,
-  computeSacrificePower,
-  computePieceWinOdds
+  computeWinOdds
 } from '../core/board.mjs';
 import {
   checkNotNullOrUndefined,
@@ -65,10 +62,9 @@ const initialize = () => {
   PIECE_MOVES[PieceType.KING] = KING_MOVES;
 };
 
-
 const getMultiplierForPiece = (piece) => {
   checkNotNullOrUndefined(piece, 'Piece can\'t be null');
-  return computeWinOdds(piece.power, 0) * 2;
+  return 1 + computeWinOdds(piece.power, 0);
 };
 
 const getValueForPiece = (side, piece) => {

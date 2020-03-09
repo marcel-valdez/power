@@ -132,7 +132,7 @@ function processResults(
     resultMsg += `\nFAILED: ${fail_count}/${total_count}`;
   }
   utils.info(resultMsg);
-  write(resultMsg, 'test-framework-results');
+  write(resultMsg, elementId);
 }
 
 async function runTests(
@@ -268,6 +268,14 @@ const assert = {
         assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
     }
   },
+  notEquals: (actual, expected, title) => {
+    if (actual !== expected) {
+      return true;
+    } else {
+      throw new AssertionError(
+        assert.makeErrorMsg(actual, expected, title, 'is equal to'));
+    }
+  },
   areSame: (actual, expected, title) => {
     if (Object.is(actual, expected)) {
       return true;
@@ -318,5 +326,6 @@ export {
   addTest,
   runTests,
   assert,
-  setTestEntriesElementId
+  setTestEntriesElementId,
+  getResults,
 };
