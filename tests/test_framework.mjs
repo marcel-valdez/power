@@ -211,11 +211,22 @@ const compareArray = (actual, expected, message = '') => {
         `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
-  [...Array(expected.length).keys()].map((index) =>
-    assert.deepEquals(
-      actual[index],
-      expected[index],
-      `${message}\n at index: ${index}`));
+  const nonMatches = [...Array(expected.length).keys()].map((index) => {
+    try {
+      return assert.deepEquals(
+        actual[index],
+        expected[index],
+        `${message}\n at index: ${index}`);
+    } catch (error) {
+      return error;
+    }
+  }).filter((outcome) => outcome !== true);
+
+  if (nonMatches.length > 0) {
+    const errors = '[\n' + nonMatches.map((error) => error.message)
+      .join('\n') + '\n]';
+    throw makeActualExpectedError(actual, expected, errors);
+  }
 
   return true;
 };
@@ -230,6 +241,57 @@ const compareObject = (actual, expected, message = '') => {
                              `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
+  return compareObjectKeys(actual, expected, message) &&
+    compareObjectProperties(actual, expected, message);
+};
+
+const compareObjectProperties = (actual, expected, message = '') => {
+  const actualProps = Object.getOwnPropertyNames(actual);
+  const expectedProps = Object.getOwnPropertyNames(expected);
+
+  const unmatchedActualProps = actualProps.filter(
+    (actualProp) => !expectedProps.includes(actualProp));
+  const unmatchedExpectedProps = expectedProps.filter(
+    (expectedProp) => !actualProps.includes(expectedProp));
+
+  if (unmatchedActualProps.length > 0) {
+    throw new AssertionError(
+      `${message}\n` +
+      'Some properties not found in the expected object.' +
+        `\nUnmatched properties: ${unmatchedActualProps}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  if (unmatchedExpectedProps.length > 0) {
+    throw new AssertionError(
+      `${message}\n` +
+      'Some expected properties not found in the actual object.' +
+        `\nMissing properties: ${unmatchedExpectedProps}` +
+        `\n${makeActualExpectedMsg(actual, expected)}`);
+  }
+
+  const nonMatches = actualProps.map((propName) =>  {
+    try {
+      return assert.deepEquals(
+        actual[propName],
+        expected[propName],
+        `${message}\n at property: ${propName}`);
+    } catch(error) {
+      return error;
+    }
+  }).filter((outcome) => outcome !== true);
+
+  if (nonMatches.length > 0) {
+    const errors = nonMatches.map(({stack}) => stack)
+      .join('\n');
+    const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
+    throw new AssertionError(message);
+  }
+
+  return true;
+};
+
+const compareObjectKeys = (actual, expected, message = '') => {
   const actualKeys = Object.keys(actual);
   const expectedKeys = Object.keys(expected);
 
@@ -252,15 +314,13 @@ const compareObject = (actual, expected, message = '') => {
       'Some expected keys not found in the actual object.' +
         `\nMissing keys: ${unmatchedExpectedKeys}` +
         `\n${makeActualExpectedMsg(actual, expected)}`);
-
-    return true;
   }
 
   const nonMatches = actualKeys.map((key) =>  {
     try {
       return assert.deepEquals(
-        actualKeys[key],
-        expectedKeys[key],
+        actual[key],
+        expected[key],
         `${message}\n at key: ${key}`);
     } catch(error) {
       return error;
@@ -268,7 +328,7 @@ const compareObject = (actual, expected, message = '') => {
   }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = nonMatches.map((error) => error.message)
+    const errors = nonMatches.map(({stack}) => stack)
       .join('\n');
     const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
     throw new AssertionError(message);
@@ -303,9 +363,13 @@ const assert = {
     if (actual === expected) {
       return true;
     } else {
-      throw new AssertionError(
-        assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
+      if (!compareNullOrUndefined(actual, expected, title)) {
+        throw new AssertionError(
+          assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
+      }
     }
+
+    return true;
   },
   notEquals: (actual, expected, title) => {
     if (actual !== expected) {
