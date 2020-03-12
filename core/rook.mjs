@@ -41,7 +41,7 @@ function Rook(state = DEFAULT_STATE) {
       const end = Math.max(this.x, x);
       for(let i = start + 1; i < end; i++) {
         if (board.containsPieceAt(i, y)) {
-          utils.warn("Rooks can't skip pieces.");
+          utils.warn('Rooks can\'t skip pieces.');
           return MoveType.INVALID;
         }
       }
@@ -53,7 +53,7 @@ function Rook(state = DEFAULT_STATE) {
       const end = Math.max(this.y, y);
       for(let i = start + 1; i < end; i++) {
         if (board.containsPieceAt(x, i)) {
-          utils.warn("Rooks can't skip pieces.");
+          utils.warn('Rooks can\'t skip pieces.');
           return MoveType.INVALID;
         }
       }

@@ -249,7 +249,6 @@ addTest('Can promote piece via attack', () => {
 });
 
 addTest('Can castle the king', () => {
-  utils.enableDebug();
   // given
   const king = new King({ position: [2, 0]});
   const leftRook = new Rook({ position: [0, 0]});
@@ -372,4 +371,85 @@ addTest('Can set game ending Rook vs King (black win)', () => {
   const endBoard = board.makeMove([0, 0], [0, 1]);
   // then
   assert.equals(endBoard.gameStatus, GameStatus.BLACK_WON);
+});
+
+addTest('Can serialize to JSON', () => {
+  // given
+  const pawn = new Pawn({ side: Side.WHITE });
+  const knight = new Knight();
+  const rook = new Rook({ side: Side.BLACK });
+  const king = new King();
+  const expected = {
+    gameStatus: GameStatus.IN_PROGRESS,
+    squares: [
+      [ null, pawn.toJson(), null ],
+      [ rook.toJson(), null, king.toJson() ],
+    ],
+    enPassant: knight.toJson(),
+    promotion: null
+  };
+  const board = new Board({
+    squares: [
+      [null, pawn, null],
+      [rook, null, king]
+    ],
+    enPassant: knight,
+    promotion: null
+  });
+  // when
+  const serialized = board.toJson();
+  // then
+  assert.deepEquals(serialized, expected);
+});
+
+
+addTest('Can deserialize from JSON', () => {
+  // given
+  const pawn = new Pawn({ side: Side.WHITE });
+  const knight = new Knight();
+  const rook = new Rook({ side: Side.BLACK });
+  const king = new King();
+  const expectedRows = [
+    [null, pawn, null],
+    [rook, null, king]
+  ];
+  const input = {
+    gameStatus: GameStatus.IN_PROGRESS,
+    squares: [
+      [ null, pawn.toJson(), null ],
+      [ rook.toJson(), null, king.toJson() ]
+    ],
+    enPassant: knight.toJson(),
+    promotion: null
+  };
+  // when
+  const board = Board.fromJson(input);
+  // then
+  assert.equals(board.gameStatus, GameStatus.IN_PROGRESS);
+  assert.equals(board.pendingPromotion, false);
+  utils.enableDebug();
+  assert.deepEquals(board.enPassant, knight);
+  assert.deepEquals(board.getRows(), expectedRows);
+});
+
+addTest('Can serialize and deserialize and serialize back', () => {
+  // given
+  const pawn = new Pawn({ side: Side.WHITE });
+  const knight = new Knight();
+  const rook = new Rook({ side: Side.BLACK });
+  const king = new King();
+  const board = new Board({
+    gameStatus: GameStatus.IN_PROGRESS,
+    squares: [
+      [null, pawn, null],
+      [rook, null, king]
+    ],
+    enPassant: knight,
+    promotion: null
+  });
+  const jsonBoard = board.toJson();
+  // when
+  const actual = Board.fromJson(jsonBoard);
+  // then
+  assert.deepEquals(actual, board);
 });

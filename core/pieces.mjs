@@ -3,6 +3,12 @@ import utils from '../core/utils.mjs';
 
 const applyProps = (piece, state) => {
 
+  piece.toJson = () => state;
+
+  piece.constructor.fromJson = (json) => {
+    return new piece.constructor(json);
+  };
+
   Object.defineProperty(piece, 'canCastle', {
     get() {
       return typeof state.canCastle !== 'undefined' && state.canCastle;

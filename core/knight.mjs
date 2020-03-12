@@ -61,7 +61,7 @@ function Knight(state = DEFAULT_STATE) {
         const targetPiece = board.getPieceAt(x, y);
         if (this.isAlly(targetPiece)) {
           if (targetPiece.type === PieceType.KING) {
-            utils.warn("You can't sacrifice the King!");
+            utils.warn('You can\'t sacrifice the King!');
             return MoveType.INVALID;
           } else {
             return MoveType.SACRIFICE;

@@ -208,6 +208,28 @@ function Board(state = DEFAULT_BOARD_STATE) {
     return new Board(newState);
   };
 
+  this.toJson = () => {
+    const squares = this.getRows().map(
+      row =>
+        row.map(cell => {
+          if (cell === null) {
+            return null;
+          } else {
+            return cell.toJson();
+          }
+        }));
+
+    const enPassant = _state.enPassant ? _state.enPassant.toJson() : null;
+    const promotion = _state.promotion ? _state.promotion.toJson() : null;
+
+    return {
+      squares,
+      enPassant,
+      promotion,
+      gameStatus: _state.gameStatus
+    };
+  };
+
   const doMove = (src, dst) => {
     const { squares, enPassant } = movePiece(_state.squares, src, dst);
     return this.copy({ squares, enPassant });
@@ -415,4 +437,43 @@ function Board(state = DEFAULT_BOARD_STATE) {
   return this;
 }
 
-export { Board, computeWinOdds, computeSacrificePower, computePieceWinOdds };
+const fromJsonCell = (cellState) => {
+  if (cellState === null) {
+    return null;
+  }
+
+  switch(cellState.type) {
+  case PieceType.PAWN:
+    return Pawn.fromJson(cellState);
+  case PieceType.KNIGHT:
+    return Knight.fromJson(cellState);
+  case PieceType.ROOK:
+    return Rook.fromJson(cellState);
+  case PieceType.KING:
+    return King.fromJson(cellState);
+  default:
+    throw Error(`Unknown piece type: ${cellState.type}`);
+  }
+};
+
+Board.fromJson = ({ squares, enPassant, promotion, gameStatus }) => {
+  const bSquares = squares.map(
+    (row) => row.map(
+      cell => fromJsonCell(cell)));
+  const bEnPassant = fromJsonCell(enPassant);
+  const bPromotion = fromJsonCell(promotion);
+
+  return new Board({
+    squares: bSquares,
+    enPassant: bEnPassant,
+    promotion: bPromotion,
+    gameStatus
+  });
+};
+
+export {
+  Board,
+  computeWinOdds,
+  computeSacrificePower,
+  computePieceWinOdds,
+};

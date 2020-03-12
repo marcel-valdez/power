@@ -11,6 +11,7 @@ import {PromotionUi} from '../ui/promotion.mjs';
 import {ResetButton} from '../ui/resetButton.mjs';
 import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
+import {Engine} from '../ai/engine.mjs';
 import utils from '../core/utils.mjs';
 
 
@@ -21,9 +22,13 @@ const DEFAULT_STATE = Object.freeze({
   dst: null,
   side: Side.WHITE
 });
+
+const engineWorker = new Worker('../ai/engineWorker.mjs', { type: 'module' });
+
 export class BoardUi extends Component {
   state = Object.assign({}, DEFAULT_STATE);
   stateStack = [DEFAULT_STATE];
+  engine = new Engine({maxDepth: 5});
 
   updateState(update) {
     this.setState(
@@ -77,6 +82,26 @@ export class BoardUi extends Component {
     } // else the user clicked on an empty square
   }
 
+  engineMove(board) {
+    new Promise((resolve, reject) => {
+      // TODO: Make the side user selected
+      engineWorker.postMessage(
+        {board: board.toJson(), side: Side.BLACK});
+      engineWorker.onmessage = ({data: action}) => resolve(action);
+    }).then((action) => {
+      const aiMoveBoard = board.makeMove(action.src, action.dst);
+      const aiMoveState = {
+        board: aiMoveBoard,
+        selectedPos: null,
+        src: action.src,
+        dst: action.dst,
+        side: Side.WHITE
+      };
+      this.pushState(Object.assign({}, this.state));
+      this.updateState(aiMoveState);
+    });
+  }
+
   movePiece(targetPosition = []) {
     const { board, selectedPos = null, src = null, side } = this.state;
     if (targetPosition[0] === selectedPos[0] &&
@@ -105,12 +130,17 @@ export class BoardUi extends Component {
       selectedPos: null
     }));
     this.updateState(newState);
+    if (newBoard.gameStatus === GameStatus.IN_PROGRESS &&
+        !newBoard.pendingPromotion) {
+      this.engineMove(newBoard);
+    }
   }
 
   setPromotion(type = PieceType.ROOK) {
     const { board } = this.state;
     const promotedBoard = board.setPromotion(type);
     this.updateState({ board: promotedBoard });
+    this.engineMove(promotedBoard);
   }
 
   render(
