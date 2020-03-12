@@ -266,14 +266,14 @@ addTest(
           [ null, null,           null,           null,           null ],
         ],
         actions: [
+          { src: [2,2], dst: [2,1] },
+          { src: [2,2], dst: [3,3] },
           { src: [2,2], dst: [1,1] },
           { src: [2,2], dst: [1,2] },
-          { src: [2,2], dst: [2,1] },
+          { src: [2,2], dst: [2,4] },
           { src: [2,2], dst: [4,0] },
           { src: [2,2], dst: [4,2] },
           { src: [2,2], dst: [0,4] },
-          { src: [2,2], dst: [2,4] },
-          { src: [2,2], dst: [3,3] },
         ]
       }
     ].map(({ board: squares, actions }) => {
@@ -281,7 +281,7 @@ addTest(
       const board = new Board({ squares });
       // when
       const actualActions = genActions(board, Side.BLACK);
-      // thenn
+      // then
       assert.deepEquals(actualActions, actions);
     });
   });
@@ -300,14 +300,14 @@ addTest(
           [ null, null, null,         null, null ],
         ],
         actions: [
-          { src: [2,3], dst: [2,0] },
-          { src: [2,3], dst: [2,1] },
-          { src: [2,3], dst: [2,2] },
           { src: [2,3], dst: [2,4] },
-          { src: [2,3], dst: [0,3] },
-          { src: [2,3], dst: [1,3] },
+          { src: [2,3], dst: [2,2] },
+          { src: [2,3], dst: [2,1] },
+          { src: [2,3], dst: [2,0] },
           { src: [2,3], dst: [3,3] },
           { src: [2,3], dst: [4,3] },
+          { src: [2,3], dst: [1,3] },
+          { src: [2,3], dst: [0,3] },
         ]
       }
     ].map(({ board: squares, actions }) => {
