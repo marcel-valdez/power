@@ -90,7 +90,7 @@ const shuffleArray = (array) => {
   }
 };
 
-export function Engine({maxDepth = 5}) {
+export function Engine({maxDepth = 3}) {
   const _maxDepth = maxDepth;
   const _whiteCache = new Cache(10000);
   const _blackCache = new Cache(10000);
@@ -116,6 +116,7 @@ export function Engine({maxDepth = 5}) {
     state,
     depth = 0) => {
       if (depth == 0) {
+        this.cacheHits = 0;
         startTime = new Date();
         if (cacheReqSide !== reqSide) {
           resetCache();

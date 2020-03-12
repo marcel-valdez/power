@@ -4,11 +4,12 @@ import {Rook} from '../../core/rook.mjs';
 import {King} from '../../core/king.mjs';
 import {Knight} from '../../core/knight.mjs';
 import {Pawn} from '../../core/pawn.mjs';
-import {Side} from '../../core/power.common.mjs';
+import {Side, GameStatus} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {computeBoardHash, Engine} from '../../ai/engine.mjs';
 import {
-  blkPawn, blkKnight, blkRook, whtPawn, whtKnight, whtKing, whtRook
+  blkPawn, blkKnight, blkRook, whtPawn, whtKnight, whtKing, whtRook,
+  blkKing
 } from '../../tests/power_test_utils.mjs';
 
 
@@ -214,4 +215,3 @@ function checkBoardsHaveDifferentHash(squaresA, squaresB) {
   // then
   assert.notEquals(hashA, hashB);
 }
-
