@@ -165,11 +165,33 @@ async function runTests(
   }
 }
 
-const toJSON = (value) => JSON.stringify(value);
+const toJSON = (value) => {
+  if (value === null) {
+    return 'null';
+  }
+
+  if (typeof(value) === 'undefined') {
+    return 'undefined';
+  }
+
+  return JSON.stringify(value);
+};
+
+const makeActualExpectedError = (actual, expected, message) => {
+  return new AssertionError(
+    `${message}\nActual: ${toJSON(actual)}\nExpected: ${toJSON(expected)}`);
+};
 
 const makeActualExpectedMsg = (actual, expected) => {
-  const actualJson = JSON.stringify(actual);
-  const expectedJson = JSON.stringify(expected);
+  let actualJson = 'undefined';
+  if (typeof(actual) !== 'undefined') {
+    actualJson = JSON.stringify(actual);
+  }
+
+  let expectedJson = 'undefined';
+  if (typeof(expected) !== 'undefined') {
+    expectedJson = JSON.stringify(expected);
+  }
   return `Actual: ${actualJson}\nExpected: ${expectedJson}`;
 };
 
@@ -189,17 +211,13 @@ const compareArray = (actual, expected, message = '') => {
         `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
-  const unmatchedItems = actual.filter(
-    (actualItem) => !expected.some(
-      (expectedItem) => assert.deepEquals(actualItem, expectedItem)));
-  if (unmatchedItems.length > 0) {
-    throw new AssertionError(
-      `${message}` +
-        `\nThere were ${unmatchedItems.length} items that weren't ` +
-        'in the expected array.' +
-        `\nItems: ${unmatchedItems}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
-  }
+  [...Array(expected.length).keys()].map((index) =>
+    assert.deepEquals(
+      actual[index],
+      expected[index],
+      `${message}\n at index: ${index}`));
+
+  return true;
 };
 
 const isObject = (maybeObj) => !Array.isArray(maybeObj)
@@ -222,6 +240,7 @@ const compareObject = (actual, expected, message = '') => {
 
   if (unmatchedActualKeys.length > 0) {
     throw new AssertionError(
+      `${message}\n` +
       'Some keys not found in the expected object.' +
         `\nUnmatched keys: ${unmatchedActualKeys}` +
         `\n${makeActualExpectedMsg(actual, expected)}`);
@@ -229,14 +248,20 @@ const compareObject = (actual, expected, message = '') => {
 
   if (unmatchedExpectedKeys.length > 0) {
     throw new AssertionError(
+      `${message}\n` +
       'Some expected keys not found in the actual object.' +
         `\nMissing keys: ${unmatchedExpectedKeys}` +
         `\n${makeActualExpectedMsg(actual, expected)}`);
+
+    return true;
   }
 
   const nonMatches = actualKeys.map((key) =>  {
     try {
-      return assert.deepEquals(actualKeys[key],  expectedKeys[key]);
+      return assert.deepEquals(
+        actualKeys[key],
+        expectedKeys[key],
+        `${message}\n at key: ${key}`);
     } catch(error) {
       return error;
     }
@@ -251,6 +276,20 @@ const compareObject = (actual, expected, message = '') => {
 
   return true;
 };
+
+function compareNullOrUndefined(actual, expected, message) {
+  if ((actual === null || expected === null) &&
+      (actual !== null || expected !== null)) {
+    throw makeActualExpectedError(actual, expected, message);
+  }
+
+  if ((typeof(actual) === 'undefined' || typeof(expected) === 'undefined') &&
+      (typeof(actual) !== 'undefined' || typeof(expected) !== 'undefined')) {
+    throw makeActualExpectedError(actual, expected, message);
+  }
+
+  return true;
+}
 
 const assert = {
   makeErrorMsg: (actual, expected, title, diffMsg) => {
@@ -308,6 +347,8 @@ const assert = {
     if (actual === expected) {
       return true;
     }
+
+    compareNullOrUndefined(actual, expected, message);
 
     if (Array.isArray(expected)) {
       return compareArray(actual, expected, message);
