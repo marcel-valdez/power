@@ -223,7 +223,7 @@ const compareArray = (actual, expected, message = '') => {
   }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = '[\n' + nonMatches.map((error) => error.message)
+    const errors = '[\n' + nonMatches.map(({message}) => message)
       .join('\n') + '\n]';
     throw makeActualExpectedError(actual, expected, errors);
   }
@@ -270,19 +270,22 @@ const compareObjectProperties = (actual, expected, message = '') => {
         `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
-  const nonMatches = actualProps.map((propName) =>  {
-    try {
-      return assert.deepEquals(
-        actual[propName],
-        expected[propName],
-        `${message}\n at property: ${propName}`);
-    } catch(error) {
-      return error;
-    }
-  }).filter((outcome) => outcome !== true);
+  const nonMatches = actualProps
+    .filter((key) => typeof(actual[key]) !== 'function' ||
+                typeof(expected[key]) !== 'function')
+    .map((propName) =>  {
+      try {
+        return assert.deepEquals(
+          actual[propName],
+          expected[propName],
+          `${message}\n at property: ${propName}`);
+      } catch(error) {
+        return error;
+      }
+    }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = nonMatches.map(({stack}) => stack)
+    const errors = nonMatches.map(({message}) => message)
       .join('\n');
     const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
     throw new AssertionError(message);
@@ -316,19 +319,23 @@ const compareObjectKeys = (actual, expected, message = '') => {
         `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
-  const nonMatches = actualKeys.map((key) =>  {
-    try {
-      return assert.deepEquals(
-        actual[key],
-        expected[key],
-        `${message}\n at key: ${key}`);
-    } catch(error) {
-      return error;
-    }
-  }).filter((outcome) => outcome !== true);
+  const nonMatches = actualKeys
+    .filter((key) => typeof(actual[key]) !== 'function' ||
+                typeof(expected[key]) !== 'function')
+    .map((key) =>  {
+      try {
+        return assert.deepEquals(
+          actual[key],
+          expected[key],
+          `${message}\n at key: ${key}`);
+      } catch(error) {
+        utils.debug(error.stack);
+        return error;
+      }
+    }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = nonMatches.map(({stack}) => stack)
+    const errors = nonMatches.map(({message}) => message)
       .join('\n');
     const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
     throw new AssertionError(message);
@@ -348,6 +355,7 @@ function compareNullOrUndefined(actual, expected, message) {
     throw makeActualExpectedError(actual, expected, message);
   }
 
+
   return true;
 }
 
@@ -363,10 +371,8 @@ const assert = {
     if (actual === expected) {
       return true;
     } else {
-      if (!compareNullOrUndefined(actual, expected, title)) {
-        throw new AssertionError(
-          assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
-      }
+      throw new AssertionError(
+        assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
     }
 
     return true;
@@ -421,6 +427,16 @@ const assert = {
     } else {
       return assert.equals(actual, expected, message);
     }
+  },
+  throws: (fn, message = '') => {
+    let error = null;
+    try {
+      fn();
+    } catch(e) {
+      error = e;
+    }
+
+    assert.notNull(error, message);
   }
 };
 
