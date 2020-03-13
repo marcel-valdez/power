@@ -12,6 +12,12 @@ import {Pawn} from '../core/pawn.mjs';
 import {King} from '../core/king.mjs';
 import utils from '../core/utils.mjs';
 
+export const EngineOutcome = {
+  NONE: 'NONE',
+  ALWAYS_WIN: 'ALWAYS_WIN',
+  ALWAYS_LOSE: 'ALWAYS_LOSE'
+};
+
 const STARTING_BOARD = Object.freeze([
   [
     new Rook({ position: [0, 0], side: Side.BLACK }),
@@ -47,8 +53,16 @@ const STARTING_BOARD = Object.freeze([
   ],
 ]);
 
-function attack(attacker, defender) {
-  let winner = determineWinner(attacker, defender);
+function attack(attacker, defender, predefinedOutcome = EngineOutcome.NONE) {
+  let winner = null;
+  if (predefinedOutcome === EngineOutcome.ALWAYS_WIN) {
+    winner = Winner.ATTACKER;
+  } else if (predefinedOutcome === EngineOutcome.ALWAYS_LOSE) {
+    winner = Winner.DEFENDER;
+  } else {
+    winner = determineWinner(attacker, defender, predefinedOutcome);
+  }
+
   if (winner === Winner.ATTACKER) {
     return {
       result: winner,
@@ -184,8 +198,8 @@ const DEFAULT_BOARD_STATE = {
 };
 
 function Board(state = DEFAULT_BOARD_STATE) {
-  const _state = Object.freeze(Object.assign({}, DEFAULT_BOARD_STATE, state));
 
+  const _state = Object.freeze(Object.assign({}, DEFAULT_BOARD_STATE, state));
 
   Object.defineProperty(this, 'enPassant', {
     get() { return _state.enPassant; }
@@ -254,12 +268,12 @@ function Board(state = DEFAULT_BOARD_STATE) {
     return gameStatus;
   };
 
-  const doAttack = (src, dst) => {
+  const doAttack = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
     const [x1, y1] = src;
     const [x2, y2] = dst;
     const attacker = this.getPieceAt(x1, y1);
     const defender = this.getPieceAt(x2, y2);
-    const result = attack(attacker, defender);
+    const result = attack(attacker, defender, predefinedOutcome);
 
     return this.copy({
       // remove piece from src
@@ -293,7 +307,7 @@ function Board(state = DEFAULT_BOARD_STATE) {
     });
   };
 
-  const doEnPassantAttack = (src, dst) => {
+  const doEnPassantAttack = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
     // HERE BE DRAGONS: UNTESTED CODE
     const [x1, y1] = src;
     const [x2, y2] = dst;
@@ -330,9 +344,9 @@ function Board(state = DEFAULT_BOARD_STATE) {
     });
   };
 
-  const doPromotionAttack = (src, dst) => {
+  const doPromotionAttack = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
     const [x2, y2] = dst;
-    const atkBoard = doAttack(src, dst);
+    const atkBoard = doAttack(src, dst, predefinedOutcome);
     const winner = atkBoard.getPieceAt(x2, y2);
     if (winner.type === PieceType.PAWN) {
       return doPromotion(src, dst);
@@ -354,7 +368,7 @@ function Board(state = DEFAULT_BOARD_STATE) {
     return this.copy({ squares: castledSquares, enPassant });
   };
 
-  this.makeMove = (src, dst) => {
+  this.makeMove = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
     const [x1, y1] = src;
     const [x2, y2] = dst;
     if (x1 === x2 && y1 === y2) {
@@ -373,17 +387,17 @@ function Board(state = DEFAULT_BOARD_STATE) {
       utils.info(`Invalid move from (${src}) to (${dst})`);
       return this;
     case MoveType.ATTACK:
-      return doAttack(src, dst);
+      return doAttack(src, dst, predefinedOutcome);
     case MoveType.MOVE:
       return doMove(src, dst);
     case MoveType.SACRIFICE:
       return doSacrifice(src, dst);
     case MoveType.EN_PASSANT_ATTACK:
-      return doEnPassantAttack(src, dst);
+      return doEnPassantAttack(src, dst, predefinedOutcome);
     case MoveType.PROMOTION:
       return doPromotion(src, dst);
     case MoveType.PROMOTION_ATTACK:
-      return doPromotionAttack(src, dst);
+      return doPromotionAttack(src, dst, predefinedOutcome);
     case MoveType.CASTLE:
       return doCastle(src, dst);
     default:

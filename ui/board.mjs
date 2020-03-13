@@ -11,7 +11,6 @@ import {PromotionUi} from '../ui/promotion.mjs';
 import {ResetButton} from '../ui/resetButton.mjs';
 import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
-import {Engine} from '../ai/engine.mjs';
 import utils from '../core/utils.mjs';
 
 
@@ -28,7 +27,6 @@ const engineWorker = new Worker('../ai/engineWorker.mjs', { type: 'module' });
 export class BoardUi extends Component {
   state = Object.assign({}, DEFAULT_STATE);
   stateStack = [DEFAULT_STATE];
-  engine = new Engine({maxDepth: 5});
 
   updateState(update) {
     this.setState(

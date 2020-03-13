@@ -3,7 +3,7 @@ import {Rook} from '../../core/rook.mjs';
 import {King} from '../../core/king.mjs';
 import {Knight} from '../../core/knight.mjs';
 import {Pawn} from '../../core/pawn.mjs';
-import {Side} from '../../core/power.common.mjs';
+import {Side, MoveType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {evaluate, genActions} from '../../ai/eval.mjs';
 import {
@@ -30,11 +30,11 @@ addTest(
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: 7.5
+        score: 8.75
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
-        score: 3.75
+        score: 4
       },
       {
         board: [ new King({ side: Side.WHITE }) ],
@@ -96,11 +96,11 @@ addTest(
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: -7.5
+        score: -8.75
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
-        score: -3.75
+        score: -4
       },
       {
         board: [ new King({ side: Side.WHITE }) ],
@@ -164,11 +164,11 @@ addTest(
       },
       {
         board: [ new Rook({ power: -1 }) ],
-        score: 6.25
+        score: 7.5
       },
       {
         board: [ new Knight({ power: -1 }) ],
-        score: 3.125
+        score: 3.375
       },
       {
         board: [ new King({ power: -1 }) ],
@@ -236,10 +236,10 @@ addTest(
           [ null, whtPawn(1, 2), null ]
         ],
         actions: [
-          { src: [1,2], dst: [1,1] },
-          { src: [1,2], dst: [1,0] },
-          { src: [1,2], dst: [0,1] },
-          { src: [1,2], dst: [2,1] }
+          { src: [1,2], dst: [1,1], type: MoveType.MOVE },
+          { src: [1,2], dst: [1,0], type: MoveType.PROMOTION },
+          { src: [1,2], dst: [0,1], type: MoveType.ATTACK },
+          { src: [1,2], dst: [2,1], type: MoveType.ATTACK }
         ]
       }
     ].map(({ board: squares, actions }) => {
@@ -266,14 +266,14 @@ addTest(
           [ null, null,           null,           null,           null ],
         ],
         actions: [
-          { src: [2,2], dst: [2,1] },
-          { src: [2,2], dst: [3,3] },
-          { src: [2,2], dst: [1,1] },
-          { src: [2,2], dst: [1,2] },
-          { src: [2,2], dst: [2,4] },
-          { src: [2,2], dst: [4,0] },
-          { src: [2,2], dst: [4,2] },
-          { src: [2,2], dst: [0,4] },
+          { src: [2,2], dst: [2,1], type: MoveType.MOVE },
+          { src: [2,2], dst: [3,3], type: MoveType.MOVE },
+          { src: [2,2], dst: [1,1], type: MoveType.MOVE },
+          { src: [2,2], dst: [1,2], type: MoveType.MOVE },
+          { src: [2,2], dst: [2,4], type: MoveType.MOVE },
+          { src: [2,2], dst: [4,0], type: MoveType.MOVE },
+          { src: [2,2], dst: [4,2], type: MoveType.MOVE },
+          { src: [2,2], dst: [0,4], type: MoveType.MOVE },
         ]
       }
     ].map(({ board: squares, actions }) => {
@@ -300,14 +300,14 @@ addTest(
           [ null, null, null,         null, null ],
         ],
         actions: [
-          { src: [2,3], dst: [2,4] },
-          { src: [2,3], dst: [2,2] },
-          { src: [2,3], dst: [2,1] },
-          { src: [2,3], dst: [2,0] },
-          { src: [2,3], dst: [3,3] },
-          { src: [2,3], dst: [4,3] },
-          { src: [2,3], dst: [1,3] },
-          { src: [2,3], dst: [0,3] },
+          { src: [2,3], dst: [2,4], type: MoveType.ATTACK },
+          { src: [2,3], dst: [2,2], type: MoveType.MOVE },
+          { src: [2,3], dst: [2,1], type: MoveType.MOVE },
+          { src: [2,3], dst: [2,0], type: MoveType.MOVE },
+          { src: [2,3], dst: [3,3], type: MoveType.MOVE },
+          { src: [2,3], dst: [4,3], type: MoveType.ATTACK },
+          { src: [2,3], dst: [1,3], type: MoveType.MOVE },
+          { src: [2,3], dst: [0,3], type: MoveType.MOVE },
         ]
       }
     ].map(({ board: squares, actions }) => {
@@ -334,14 +334,14 @@ addTest(
           [ null, null, null,         null, null ],
         ],
         actions: [
-          { src: [2,3], dst: [2,2] },
-          { src: [2,3], dst: [2,4] },
-          { src: [2,3], dst: [3,4] },
-          { src: [2,3], dst: [3,3] },
-          { src: [2,3], dst: [3,2] },
-          { src: [2,3], dst: [1,4] },
-          { src: [2,3], dst: [1,3] },
-          { src: [2,3], dst: [1,2] },
+          { src: [2,3], dst: [2,2], type: MoveType.MOVE },
+          { src: [2,3], dst: [2,4], type: MoveType.ATTACK },
+          { src: [2,3], dst: [3,4], type: MoveType.MOVE },
+          { src: [2,3], dst: [3,3], type: MoveType.MOVE },
+          { src: [2,3], dst: [3,2], type: MoveType.MOVE },
+          { src: [2,3], dst: [1,4], type: MoveType.MOVE },
+          { src: [2,3], dst: [1,3], type: MoveType.MOVE },
+          { src: [2,3], dst: [1,2], type: MoveType.MOVE },
         ]
       }
     ].map(({ board: squares, actions }) => {

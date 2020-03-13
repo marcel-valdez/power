@@ -7,9 +7,9 @@ import {
 } from '../core/power.common.mjs';
 import {
   Board,
-  computeWinOdds,
   computeSacrificePower,
-  computePieceWinOdds
+  computePieceWinOdds,
+  EngineOutcome
 } from '../core/board.mjs';
 import {
   checkNotNullOrUndefined,
@@ -65,14 +65,114 @@ export function Engine({maxDepth = 3, playingSide = null}) {
     return side === Side.WHITE ? Side.BLACK : Side.WHITE;
   };
 
+  const computePossibleBoards = (board, action) => {
+    const { src, dst, type } = action;
+
+    switch(type) {
+    case MoveType.MOVE:
+    case MoveType.CASTLE:
+      return [{
+        boards: [board.makeMove(src, dst)],
+        odds: 1.0
+      }];
+    case MoveType.ATTACK: {
+      const attackWinOdds =
+        computePieceWinOdds(board.getPieceAt(...src), board.getPieceAt(...dst));
+      return [
+        {
+          boards: [board.makeMove(src, dst, EngineOutcome.ALWAYS_WIN)],
+          odds: attackWinOdds
+        },
+        {
+          boards: [board.makeMove(src, dst, EngineOutcome.ALWAYS_LOSE)],
+          odds: 1 - attackWinOdds
+        }
+      ];
+    }
+    case MoveType.EN_PASSANT_ATTACK: {
+      const [x1,y1] = src;
+      const [x2,y2] = dst;
+      const attacker = board.getPieceAt(x1,y1);
+      let enPassantPiece = board.getPieceAt(x2, y1);
+      const attackWinOdds =
+        computePieceWinOdds(attacker, enPassantPiece);
+      return [
+        {
+          boards: [board.makeMove(src, dst, EngineOutcome.ALWAYS_WIN)],
+          odds: attackWinOdds
+        },
+        {
+          boards: [board.makeMove(src, dst, EngineOutcome.ALWAYS_LOSE)],
+          odds: 1 - attackWinOdds
+        }
+      ];
+    }
+    case MoveType.PROMOTION_ATTACK:
+      const promoAttackWinOdds =
+        computePieceWinOdds(board.getPieceAt(...src), board.getPieceAt(...dst));
+      const promoBoard = board.makeMove(src, dst, EngineOutcome.ALWAYS_WIN);
+      return [
+        {
+          boards: [board.makeMove(src, dst, EngineOutcome.ALWAYS_LOSE)],
+          odds: 1 - promoAttackWinOdds
+        },
+        {
+          boards: [
+            promoBoard.setPromotion(PieceType.ROOK),
+            promoBoard.setPromotion(PieceType.KNIGHT)
+          ],
+          odds: promoAttackWinOdds
+        }
+      ];
+    case MoveType.SACRIFICE:
+      // only one possible board
+      return [{
+        boards: [board.makeMove(src, dst)],
+        odds: 1.0
+      }];
+    case MoveType.PROMOTION:
+      const promotionPending = board.makeMove(src, dst);
+      return [
+        {
+          boards: [
+            promotionPending.setPromotion(PieceType.ROOK),
+            promotionPending.setPromotion(PieceType.KNIGHT)
+          ],
+          odds: 1.0
+        }
+      ];
+    default:
+      throw new Error(`Invalid move type: ${type}`);
+    }
+  };
+
+  /**
+   * Evaluates multiple boards and returns the one with the best value.
+   */
+  const computeBestBoard = (boards, state, depth) => {
+    checkNotNullOrUndefined(boards);
+    checkNotNullOrUndefined(state);
+    checkNotNullOrUndefined(depth);
+
+    const isMax = playingSide === state.curSide;
+    const isMin = !isMax;
+    return boards.map(board =>
+      this.computeMove(board, state, depth)
+    ).reduce((a, b) =>
+      (isMax && a.score >= b.score) ||
+               (isMin && a.score <= b.score) ? a : b);
+  };
+
   this.computeMove = (
     board,
     state,
     depth = 0) => {
+
     if (depth == 0) {
       this.cacheHits = 0;
       startTime = new Date();
     }
+
 
     if (board.gameStatus !== GameStatus.IN_PROGRESS || depth > _maxDepth) {
       return {
@@ -98,14 +198,23 @@ export function Engine({maxDepth = 3, playingSide = null}) {
     shuffleArray(validActions);
     let bestScore = isMax ? -1000 : 1000;
     let bestAction = null;
+
     for(let i = 0; i < validActions.length; i++) {
       const {src, dst} = validActions[i];
-      // TODO: This performs actual fights, but we should instead create
-      // both possibilities loss and win.
+
+      const possibilities = computePossibleBoards(board, validActions[i]);
       const nextState = { alpha, beta, curSide: nextSide(curSide) };
-      const moveBoard = board.makeMove(src, dst);
-      const { score, action } =
-              this.computeMove(moveBoard, nextState, depth + 1);
+
+      const score =
+              possibilities.map(({ boards, odds }) => {
+                const { score: possibleScore } =
+                      computeBestBoard(boards, nextState, depth + 1);
+                return {
+                  possibleScore,
+                  odds
+                };
+              }).map(({ possibleScore, odds }) => possibleScore * odds)
+                .reduce((a, b) => a + b);
 
       if (isMax && bestScore < score) {
         bestScore = score;

@@ -18,7 +18,7 @@ const write = (msg, elementId = null) => {
   }
 
   const escaped = msg.replace(/\n/g, '<BR>');
-  element.innerHTML += `<p>${escaped}</p>`;
+  element.innerHTML += `${escaped}`;
 };
 
 function docReady(fn) {
@@ -96,11 +96,11 @@ const reportResult = (title = '', result, error = '') => {
   if (error) {
     utils.log(`${title}: ${result}\n${error.stack}`);
     write(
-      `${title} <font color="red">${result}</font><br/>${error.stack}`,
+      `<div class='test-result'>${title} <font color="crimson">${result}</font><br/>${error.stack}</div>`,
       testEntriesElementId);
   } else {
     utils.log(`${title}: ${result}`);
-    write(`${title} <font color="green">${result}</font>`,
+    write(`<div class='test-result'>${title} <font color="seagreen">${result}</font></div>`,
       testEntriesElementId);
   }
 };
@@ -128,11 +128,14 @@ function processResults(
   const { pass_count, fail_count } = results;
   const total_count = pass_count + fail_count;
   let resultMsg = `PASSED: ${pass_count}/${total_count}`;
+  utils.info(`PASSED: ${pass_count}/${total_count}`);
+  write(`<font color="seagreen">PASSED</font>: ${pass_count}/${total_count}<br/>`,
+    elementId);
   if (fail_count > 0) {
-    resultMsg += `\nFAILED: ${fail_count}/${total_count}`;
+    write(`<font color="crimson">FAILED</font>: ${fail_count}/${total_count}<br/>`,
+      elementId);
+    utils.info(`FAILED: ${fail_count}/${total_count}`);
   }
-  utils.info(resultMsg);
-  write(resultMsg, elementId);
 }
 
 async function runTests(

@@ -62,9 +62,122 @@ const initialize = () => {
   PIECE_MOVES[PieceType.KING] = KING_MOVES;
 };
 
+const getRookPositionMultiplier = (rook) => {
+  const {x,y} = rook;
+  let horizontalMultiplier = 0;
+  let verticalMultiplier = 0;
+
+  if (x === 2) {
+    horizontalMultiplier += .25;
+  } else if (x === 1 || x === 3) {
+    horizontalMultiplier += .1;
+  }
+
+  if (rook.side === Side.WHITE) {
+    if (y === 0) {
+      verticalMultiplier += .25;
+    } else if (y === 1) {
+      verticalMultiplier += 0.5;
+    }
+  } else {
+    if (y === 7) {
+      verticalMultiplier += .25;
+    } else if (y === 6) {
+      verticalMultiplier += 0.5;
+    }
+  }
+
+  return horizontalMultiplier + verticalMultiplier;
+};
+
+
+const getKnightPositionMultiplier = (knight) => {
+  const {x,y} = knight;
+  let horizontalMultiplier = 0;
+  let verticalMultiplier = 0;
+
+  if (x === 2) {
+    horizontalMultiplier += .25;
+  } else if (x === 1 || x === 3) {
+    horizontalMultiplier += .1;
+  }
+
+  if (knight.side === Side.WHITE) {
+    if (y === 0) {
+      verticalMultiplier += .1;
+    } else if (y === 2 || y === 3) {
+      verticalMultiplier += 0.33;
+    } else if (y === 1) {
+      verticalMultiplier += 0.5;
+    }
+  } else {
+    if (y === 7) {
+      verticalMultiplier += .1;
+    } else if (y === 5 || y === 4) {
+      verticalMultiplier += 0.33;
+    } else if (y === 6) {
+      verticalMultiplier += 0.5;
+    }
+  }
+
+  return horizontalMultiplier + verticalMultiplier;
+};
+
+const getPawnPositionMultiplier = (pawn) => {
+  const {x,y} = pawn;
+  let horizontalMultiplier = 0;
+  let verticalMultiplier = 0;
+
+  if (x === 2) {
+    horizontalMultiplier += .25;
+  } else if (x === 1 || x === 3) {
+    horizontalMultiplier += .1;
+  }
+
+  if (pawn.side === Side.WHITE) {
+    if (y === 5) {
+      verticalMultiplier += 0.1;
+    } else if (y === 4) {
+      verticalMultiplier += 0.2;
+    } else if (y === 3) {
+      verticalMultiplier += 0.25;
+    } else if (y === 2) {
+      verticalMultiplier += 0.33;
+    } else if (y === 1) {
+      verticalMultiplier += 0.5;
+    }
+  } else {
+    if (y === 2) {
+      verticalMultiplier += 0.1;
+    } else if (y === 3) {
+      verticalMultiplier += 0.2;
+    } else if (y === 4) {
+      verticalMultiplier += 0.25;
+    } else if (y === 5) {
+      verticalMultiplier += 0.33;
+    } else if (y === 6) {
+      verticalMultiplier += 0.5;
+    }
+  }
+
+  return horizontalMultiplier + verticalMultiplier;
+};
+
 const getMultiplierForPiece = (piece) => {
   checkNotNullOrUndefined(piece, 'Piece can\'t be null');
-  return 1 + computeWinOdds(piece.power, 0);
+  let positionMultiplier = 0;
+  switch(piece.type) {
+  case PieceType.KNIGHT:
+    positionMultiplier = getKnightPositionMultiplier(piece);
+    break;
+  case PieceType.ROOK:
+    positionMultiplier = getRookPositionMultiplier(piece);
+    break;
+  case PieceType.PAWN:
+    positionMultiplier = getPawnPositionMultiplier(piece);
+    break;
+  }
+  return 1 + computeWinOdds(piece.power, 0) + positionMultiplier;
 };
 
 const getValueForPiece = (side, piece) => {
@@ -108,9 +221,12 @@ const genActionsForPiece = (board, piece) => {
       piece.side === Side.WHITE ? -dy : dy
     ])
     .map(([dx,dy]) => [x+dx, y+dy])
-    .filter(([x2,y2]) =>
-      piece.computeMoveType(board, x2, y2) !== MoveType.INVALID)
-    .map(([x2,y2]) => ({ src: [x,y], dst: [x2,y2] }));
+    .map(([x2, y2]) => ({
+      src: [x, y],
+      dst: [x2, y2],
+      type: piece.computeMoveType(board, x2, y2)
+    }))
+    .filter((action) => action.type !== MoveType.INVALID);
 };
 
 export const genActions = (board, side) => {
