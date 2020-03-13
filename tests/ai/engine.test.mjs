@@ -19,18 +19,10 @@ addTest('Engine.computeMove: first move', () => {
   const maxDepth = 3;
   const engine = new Engine({ maxDepth, playingSide: Side.WHITE });
   // when
-  utils.info('[START] engine.computeMove');
   utils.disableLogging();
   const result = engine.computeMove(board);
   utils.enableLogging();
-  utils.info('[END] engine.computeMove');
   // then
-  utils.info('depth:', maxDepth);
-  utils.info('cacheHits:', engine.cacheHits);
-  utils.info('whiteCache:', engine.whiteCache.totalSize());
-  utils.info('blackCache:', engine.blackCache.totalSize());
-  utils.info('duration seconds:', engine.lastDuration() / 1000);
-  utils.info('result:', JSON.stringify(result));
   assert.notNull(result);
   assert.notNull(result.score);
   assert.notNull(result.action);

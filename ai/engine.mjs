@@ -45,7 +45,7 @@ export function Engine({maxDepth = 3, playingSide = null}) {
   checkArgument(() => playingSide === Side.WHITE || playingSide === Side.BLACK,
     'Side needs to be Side.WHITE or Side.BLACK');
 
-  const _maxDepth = maxDepth;
+  let _maxDepth = maxDepth;
   const _whiteCache = new Cache(10000);
   const _blackCache = new Cache(10000);
 
@@ -149,7 +149,7 @@ export function Engine({maxDepth = 3, playingSide = null}) {
   /**
    * Evaluates multiple boards and returns the one with the best value.
    */
-  const computeBestBoard = (boards, state, depth) => {
+  const computeBestBoard = (boards, state, depth, limitDepth) => {
     checkNotNullOrUndefined(boards);
     checkNotNullOrUndefined(state);
     checkNotNullOrUndefined(depth);
@@ -157,24 +157,41 @@ export function Engine({maxDepth = 3, playingSide = null}) {
     const isMax = playingSide === state.curSide;
     const isMin = !isMax;
     return boards.map(board =>
-      this.computeMove(board, state, depth)
+      doComputeMove(board, state, depth, limitDepth)
     ).reduce((a, b) =>
       (isMax && a.score >= b.score) ||
                (isMin && a.score <= b.score) ? a : b);
   };
 
-  this.computeMove = (
-    board,
-    state,
+  this.computeMove = (board,
+    state = { alpha: -1000, beta: 1000, curSide: playingSide },
     depth = 0) => {
-
     if (depth == 0) {
       this.cacheHits = 0;
       startTime = new Date();
     }
 
+    const pieceCount = board.getRows().flat(2)
+      .filter(cell => cell !== null).length;
+    let limitDepth = maxDepth;
+    if (pieceCount <= 15) {
+      limitDepth = Math.ceil(maxDepth * 1.2);
+    }
 
-    if (board.gameStatus !== GameStatus.IN_PROGRESS || depth > _maxDepth) {
+    if (pieceCount <= 10) {
+      limitDepth = Math.ceil(maxDepth * 1.33);
+    }
+
+    if (pieceCount <= 5) {
+      limitDepth = Math.ceil(maxDepth * 1.5);
+    }
+
+    return doComputeMove(board, state, depth, limitDepth);
+  };
+
+  const doComputeMove = (board, state, depth, limitDepth) => {
+
+    if (board.gameStatus !== GameStatus.IN_PROGRESS || depth > maxDepth) {
       return {
         score: evaluate(board, playingSide),
         action: null,
@@ -182,7 +199,7 @@ export function Engine({maxDepth = 3, playingSide = null}) {
       };
     }
 
-    let { alpha = -1000, beta = 1000, curSide = playingSide } = state || {};
+    let { alpha = -1000, beta = 1000, curSide = playingSide } = state;
     const boardHash = computeBoardHash(board);
     const cachedResult = getCachedResult(boardHash, curSide);
     if (cachedResult !== null && typeof(cachedResult) !== 'undefined') {
@@ -208,7 +225,7 @@ export function Engine({maxDepth = 3, playingSide = null}) {
       const score =
               possibilities.map(({ boards, odds }) => {
                 const { score: possibleScore } =
-                      computeBestBoard(boards, nextState, depth + 1);
+                      computeBestBoard(boards, nextState, depth + 1, limitDepth);
                 return {
                   possibleScore,
                   odds
