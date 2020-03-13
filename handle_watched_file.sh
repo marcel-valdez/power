@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "${SCRIPT_DIR}/boilerplate.sh"
+
 function now {
-  date '+%H:%M:%S'
+  ::now
 }
 
 function print {
-  echo "$(now) $1"
+  ::log "$@"
 }
 
 function run_all_tests {

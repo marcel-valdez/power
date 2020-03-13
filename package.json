@@ -7,7 +7,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "./handle_watched_file.sh run_all_tests.mjs"
+    "test": "./handle_watched_file.sh run_all_tests.mjs",
+    "start-local-web-server": "./local-web-server.sh --start",
+    "stop-local-web-server": "./local-web-server.sh --stop"
   },
   "repository": {
     "type": "git",
@@ -26,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/marcel-valdez/power/issues"
   },
-  "homepage": "https://github.com/marcel-valdez/power#readme"
+  "homepage": "https://github.com/marcel-valdez/power#readme",
+  "devDependencies": {
+    "local-web-server": "^4.0.0"
+  }
 }
