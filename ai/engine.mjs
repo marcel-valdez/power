@@ -180,7 +180,7 @@ export function Engine({
     }
 
     if (pieceCount <= 5) {
-      return Math.round(maxDepth * 1.33);
+      return Math.round(maxDepth * 1.3);
     }
 
     return maxDepth;
