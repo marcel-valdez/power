@@ -42,8 +42,7 @@ const warn = (...msg) => WARNING && log('WARN: ', ...msg);
 const error = (...msg) => ERROR && log('ERROR: ', ...msg);
 
 const isNotNullOrUndefined = (obj) => {
-  return typeof(obj) !== 'undefined' &&
-    obj !== null;
+  return obj !== null && typeof(obj) !== 'undefined';
 };
 
 const isNullOrUndefined = (obj) => {
