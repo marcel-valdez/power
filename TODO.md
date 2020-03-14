@@ -2,7 +2,21 @@
 
 ## Local Gameplay Features
 
-- Use animations for battles.
+- [Bug] When a user undos an action WHILE the AI is thinking, the AI
+  still tries to move the original board, we need to "forget" about the
+  AI's previous response.
+  - Effort: S
+  - Value: Medium to High.
+  - Suggestion: Keep track of a "compute move ID" which we keep in the state
+    only if the response from the engine matches that ID we will use the
+    AI's response.
+    - Possible issue: If we issue a second calculation request, the Engine
+    will use the previous start timer to start the request, we need to
+    make the start time a value that is store on a per-request basis, which
+    means we need better state management functions, so that we can easily
+    extract, pass & read values from the state, there are too many parameters
+    right now.
+- [Feature] Use animations for battles.
   - Effort: M
   - Value: Medium to High
   - Suggestion: "Vibrate" the battling pieces and then fade out the one that
@@ -15,23 +29,23 @@
          vibrating.
       2. Once the defender has faded out, the attacker disappears.
       3. Then instantly reappears in the defender's position.
-- Add resign button to give up.
+- [Feature] Add resign button to give up.
   - Effort: S
   - Value: Medium
-- Allow the user to redo an action.
+- [Feature] Allow the user to redo an action.
   - Effort: XS+
   - Value: Medium
   - Ambiguity: Very Low, we use the previous state and restore when the button
     is clicked, this is very easy to implement.
-- Improve UI to make it more user-friendly (mobile and web).
+- [Feature] Improve UI to make it more user-friendly (mobile and web).
   - Effort: L-
   - Value: Very High
   - Ambiguity: Medium to High
   - Suggestion:
   - lichess.org UI is pretty simple & good, we can borrow their ideas.
-- Provide feedback to the user when an invalid action is taken.
+- [Feature] Provide feedback to the user when an invalid action is taken.
   - Effort: S+
-  - Value: Medium.
+  - Value: Medium to Low.
   - Ambiguity: Very Low.
 
 ## Multi-player Gameplay Features
@@ -62,6 +76,10 @@
 
 ## Done Features
 
+- [DONE] ~~AI that plays the game well enough to be challenging~~
+  - Effort: M+
+  - Value: Very High
+  - Ambiguity: Medium to High
 - [DONE] ~~Allow the user to undo an action.~~
   - Effort: S+
   - Value: Very High
