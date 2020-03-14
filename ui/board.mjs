@@ -11,6 +11,7 @@ import {PromotionUi} from '../ui/promotion.mjs';
 import {ResetButton} from '../ui/resetButton.mjs';
 import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
+import {EngineThinkingModal} from '../ui/engineThinkingModal.mjs';
 import utils from '../core/utils.mjs';
 
 
@@ -22,6 +23,8 @@ const DEFAULT_STATE = Object.freeze({
   side: Side.WHITE
 });
 
+const ENGINE_SIDE = Side.BLACK;
+const HUMAN_SIDE = Side.WHITE;
 const engineWorker = new Worker('../ai/engineWorker.mjs', { type: 'module' });
 
 export class BoardUi extends Component {
@@ -46,7 +49,16 @@ export class BoardUi extends Component {
     if (this.stateStack.length === 1) {
       utils.log('No more moves to undo.');
     }
-    this.setState(this.stateStack.pop());
+
+    let oldState = this.stateStack.pop();
+    // if it is the engine's turn, fire it up
+    if (oldState.board.gameStatus === GameStatus.IN_PROGRESS &&
+        !oldState.board.pendingPromotion &&
+        oldState.side === ENGINE_SIDE) {
+      oldState = this.stateStack.pop();
+    }
+
+    this.setState(oldState);
   }
 
   getNextSide() {
@@ -55,9 +67,14 @@ export class BoardUi extends Component {
   }
 
   clickPiece(position = []) {
-    const { selectedPos = null, board } = this.state;
+    const { selectedPos = null, board, side } = this.state;
     if (board.pendingPromotion) {
       // Can't move piece until the promotion piece is selected
+      return;
+    }
+
+    if (side === ENGINE_SIDE) {
+      // Can't move the AI's pieces
       return;
     }
 
@@ -84,16 +101,21 @@ export class BoardUi extends Component {
     new Promise((resolve, reject) => {
       // TODO: Make the side user selected
       engineWorker.postMessage(
-        {board: board.toJson(), side: Side.BLACK});
+        {board: board.toJson(), side: ENGINE_SIDE});
       engineWorker.onmessage = ({data: action}) => resolve(action);
     }).then((action) => {
-      const aiMoveBoard = board.makeMove(action.src, action.dst);
+      let aiMoveBoard = board.makeMove(action.src, action.dst);
+      if (aiMoveBoard.pendingPromotion) {
+        // assume AI wants a rook
+        aiMoveBoard = aiMoveBoard.setPromotion(PieceType.ROOK);
+      }
+
       const aiMoveState = {
         board: aiMoveBoard,
         selectedPos: null,
         src: action.src,
         dst: action.dst,
-        side: Side.WHITE
+        side: HUMAN_SIDE
       };
       this.pushState(Object.assign({}, this.state));
       this.updateState(aiMoveState);
@@ -216,6 +238,11 @@ ${boardUi}
   side=${this.getNextSide()}
   onClick=${(type) => this.setPromotion(type)}
 />`;
+    } else if (side === ENGINE_SIDE) {
+      boardUi = html`
+${boardUi}
+<${EngineThinkingModal} />
+`;
     }
 
     return boardUi;

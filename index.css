@@ -165,3 +165,17 @@ h1 {
   font-size: 30pt;
   font-family: 'Roboto';
 }
+
+.thinking {
+  border-width: 4px;
+  border-style: groove;
+  padding: 10px;
+
+  vertical-align: middle;
+  text-align: center;
+
+  font-size: 12pt;
+  font-family: 'Roboto';
+
+  opacity: 0.75
+}
