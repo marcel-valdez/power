@@ -10,6 +10,7 @@ import {
 } from '../core/board.mjs';
 import {
   checkNotNullOrUndefined,
+  checkArgument
 } from '../core/preconditions.mjs';
 
 
@@ -62,7 +63,12 @@ const initialize = () => {
   PIECE_MOVES[PieceType.KING] = KING_MOVES;
 };
 
-const getRookPositionMultiplier = (rook) => {
+const roundToMillis = (number) => {
+  return Math.trunc(number * 1000) / 1000;
+};
+
+const getRookMultiplierForXY = (rook) => {
+  checkNotNullOrUndefined(rook);
   const {x,y} = rook;
   let horizontalMultiplier = 0;
   let verticalMultiplier = 0;
@@ -90,8 +96,86 @@ const getRookPositionMultiplier = (rook) => {
   return horizontalMultiplier + verticalMultiplier;
 };
 
+const getRookMovementMultiplier = (board, rook) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(rook);
 
-const getKnightPositionMultiplier = (knight) => {
+  const rookActions = genActionsForPiece(board, rook);
+  const rookMovesCount = rookActions.length;
+
+  rookActions.filter(action => action.type === MoveType.ATTACK)
+    .map(({dst}) => dst)
+    .map(([x,y]) => {
+      const defender = board.getPieceAt(x, y);
+      if (defender.type === PieceType.KING) {
+        return 4;
+      }
+
+      if (defender.type === PieceType.ROOK &&
+          defender.power < rook.power) {
+        return (rook.power - defender.power) * 2;
+      }
+
+      if (defender.type === PieceType.KNIGHT &&
+          defender.power < rook.power) {
+        return rook.power - defender.power;
+      }
+
+      return 0;
+    })
+    .reduce((a, b) => a + b, 0);
+
+
+  return (rookMovesCount / 19.0) / 2.0;
+};
+
+const getRookPositionMultiplier = (board, rook) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(rook);
+
+  const xyMultiplier = getRookMultiplierForXY(rook);
+  const movementMultiplier = getRookMovementMultiplier(board, rook);
+
+  return movementMultiplier + xyMultiplier;
+};
+
+const getKnightMovementMultiplier = (board, knight) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(knight);
+
+  const actions = genActionsForPiece(board, knight);
+
+  const moveCount = actions.length;
+
+  const usefulAttackCount = actions
+    .filter((action) => action.type === MoveType.ATTACK)
+    .map(({dst}) => dst)
+    .map(([x,y]) => {
+      const defender = board.getPieceAt(x,y);
+      if (defender.type === PieceType.ROOK) {
+        return 2 + (Math.max(0, knight.power - defender.power) * 3);
+      }
+
+      if (defender.type === PieceType.KING) {
+        return 4;
+      }
+
+      if (defender.type === PieceType.KNIGHT &&
+          defender.power < knight.power) {
+        return (knight.power - defender.power) * 2;
+      }
+
+      return 0;
+    })
+    .reduce((a, b) => a + b, 0);
+
+  return ((moveCount + usefulAttackCount) / 17.0) / 2.0;
+};
+
+const getKnightXYMultiplier = (board, knight) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(knight);
+
   const {x,y} = knight;
   let horizontalMultiplier = 0;
   let verticalMultiplier = 0;
@@ -105,17 +189,17 @@ const getKnightPositionMultiplier = (knight) => {
   if (knight.side === Side.WHITE) {
     if (y === 0) {
       verticalMultiplier += .1;
-    } else if (y === 2 || y === 3) {
+    } else if (y === 1 || y === 3) {
       verticalMultiplier += 0.33;
-    } else if (y === 1) {
+    } else if (y === 2) {
       verticalMultiplier += 0.5;
     }
   } else {
     if (y === 7) {
       verticalMultiplier += .1;
-    } else if (y === 5 || y === 4) {
+    } else if (y === 6 || y === 4) {
       verticalMultiplier += 0.33;
-    } else if (y === 6) {
+    } else if (y === 5) {
       verticalMultiplier += 0.5;
     }
   }
@@ -123,7 +207,19 @@ const getKnightPositionMultiplier = (knight) => {
   return horizontalMultiplier + verticalMultiplier;
 };
 
-const getPawnPositionMultiplier = (pawn) => {
+const getKnightPositionMultiplier = (board, knight) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(knight);
+  const xyMultiplier = getKnightXYMultiplier(board, knight);
+  const moveMultiplier = getKnightMovementMultiplier(board, knight);
+
+  return xyMultiplier + moveMultiplier;
+};
+
+const getPawnPositionMultiplier = (board, pawn) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(pawn);
+
   const {x,y} = pawn;
   let horizontalMultiplier = 0;
   let verticalMultiplier = 0;
@@ -163,33 +259,36 @@ const getPawnPositionMultiplier = (pawn) => {
   return horizontalMultiplier + verticalMultiplier;
 };
 
-const getMultiplierForPiece = (piece) => {
-  checkNotNullOrUndefined(piece, 'Piece can\'t be null');
+const getMultiplierForPiece = (board, piece) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(piece);
+
   let positionMultiplier = 0;
   switch(piece.type) {
   case PieceType.KNIGHT:
-    positionMultiplier = getKnightPositionMultiplier(piece);
+    positionMultiplier = getKnightPositionMultiplier(board, piece);
     break;
   case PieceType.ROOK:
-    positionMultiplier = getRookPositionMultiplier(piece);
+    positionMultiplier = 0;//getRookPositionMultiplier(board, piece);
     break;
   case PieceType.PAWN:
-    positionMultiplier = getPawnPositionMultiplier(piece);
+    positionMultiplier = getPawnPositionMultiplier(board, piece);
     break;
   }
-  return 1 + computeWinOdds(piece.power, 0) + positionMultiplier;
+  return roundToMillis(1 + computeWinOdds(piece.power, 0) + positionMultiplier);
 };
 
-const getValueForPiece = (side, piece) => {
-  checkNotNullOrUndefined(side, 'Side can\'t be null');
-  checkNotNullOrUndefined(piece, 'Piece can\'t be null');
+const getValueForPiece = (board, side, piece) => {
+  checkNotNullOrUndefined(board);
+  checkNotNullOrUndefined(side);
+  checkNotNullOrUndefined(piece);
+
   if (utils.isNullOrUndefined(piece)) {
     return 0;
   }
 
-
   const pieceValue = PIECE_SCORES[piece.type];
-  const pieceScore = pieceValue * getMultiplierForPiece(piece);
+  const pieceScore = pieceValue * getMultiplierForPiece(board, piece);
   if (piece.side === side) {
     return pieceScore;
   } else {
@@ -251,10 +350,10 @@ export const evaluate = (board, side) => {
   const boardValue = board.getRows()
     .flat(2)
     .filter(utils.isNotNullOrUndefined)
-    .map((piece) => getValueForPiece(side, piece))
-    .reduce((a, b) => a + b);
+    .map((piece) => getValueForPiece(board, side, piece))
+    .reduce((a, b) => a + b, 0);
 
-  return boardValue;
+  return roundToMillis(boardValue);
 };
 
 initialize();

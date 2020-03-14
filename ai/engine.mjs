@@ -40,14 +40,19 @@ const shuffleArray = (array) => {
   }
 };
 
-export function Engine({maxDepth = 3, playingSide = null}) {
+export function Engine({
+  maxDepth = 3,
+  playingSide = null,
+  timeLimitMillis = 30000
+}) {
+
   checkArgument(() => maxDepth >= 0, 'Depth can\'t be less than 0');
   checkArgument(() => playingSide === Side.WHITE || playingSide === Side.BLACK,
     'Side needs to be Side.WHITE or Side.BLACK');
 
   let _maxDepth = maxDepth;
-  const _whiteCache = new Cache(10000);
-  const _blackCache = new Cache(10000);
+  const _whiteCache = new Cache(20000);
+  const _blackCache = new Cache(20000);
 
   // START: analytics
   this.whiteCache = _whiteCache;
@@ -149,7 +154,7 @@ export function Engine({maxDepth = 3, playingSide = null}) {
   /**
    * Evaluates multiple boards and returns the one with the best value.
    */
-  const computeBestBoard = (boards, state, depth, limitDepth) => {
+  const computeBestBoard = (boards, state, depth, depthLimit) => {
     checkNotNullOrUndefined(boards);
     checkNotNullOrUndefined(state);
     checkNotNullOrUndefined(depth);
@@ -157,10 +162,28 @@ export function Engine({maxDepth = 3, playingSide = null}) {
     const isMax = playingSide === state.curSide;
     const isMin = !isMax;
     return boards.map(board =>
-      doComputeMove(board, state, depth, limitDepth)
+      doComputeMove(board, state, depth, depthLimit)
     ).reduce((a, b) =>
       (isMax && a.score >= b.score) ||
                (isMin && a.score <= b.score) ? a : b);
+  };
+
+  const getDepthLimitForBoard = (board) => {
+    const pieceCount = board.getRows().flat(2)
+      .filter(cell => cell !== null).length;
+    if (pieceCount <= 15 && pieceCount > 10) {
+      return Math.round(maxDepth * 1.1);
+    }
+
+    if (pieceCount <= 10 && pieceCount > 5) {
+      return Math.round(maxDepth * 1.2);
+    }
+
+    if (pieceCount <= 5) {
+      return Math.round(maxDepth * 1.33);
+    }
+
+    return maxDepth;
   };
 
   this.computeMove = (board,
@@ -171,27 +194,20 @@ export function Engine({maxDepth = 3, playingSide = null}) {
       startTime = new Date();
     }
 
-    const pieceCount = board.getRows().flat(2)
-      .filter(cell => cell !== null).length;
-    let limitDepth = maxDepth;
-    if (pieceCount <= 15) {
-      limitDepth = Math.ceil(maxDepth * 1.2);
-    }
-
-    if (pieceCount <= 10) {
-      limitDepth = Math.ceil(maxDepth * 1.33);
-    }
-
-    if (pieceCount <= 5) {
-      limitDepth = Math.ceil(maxDepth * 1.5);
-    }
-
-    return doComputeMove(board, state, depth, limitDepth);
+    const depthLimit = getDepthLimitForBoard(board);
+    return doComputeMove(board, state, depth, depthLimit);
   };
 
-  const doComputeMove = (board, state, depth, limitDepth) => {
+  const reachedTimeLimit = () => {
+    const now = new Date();
+    return ((now - startTime) >= timeLimitMillis);
+  };
 
-    if (board.gameStatus !== GameStatus.IN_PROGRESS || depth > maxDepth) {
+  const doComputeMove = (board, state, depth, depthLimit) => {
+    if (board.gameStatus !== GameStatus.IN_PROGRESS ||
+        depth > depthLimit ||
+        // This check isn't thread-safe
+        reachedTimeLimit()) {
       return {
         score: evaluate(board, playingSide),
         action: null,
@@ -225,10 +241,10 @@ export function Engine({maxDepth = 3, playingSide = null}) {
       const score =
               possibilities.map(({ boards, odds }) => {
                 const { score: possibleScore } =
-                      computeBestBoard(boards, nextState, depth + 1, limitDepth);
+                      computeBestBoard(boards, nextState, depth + 1, depthLimit);
                 return {
-                  possibleScore,
-                  odds
+                  odds,
+                  possibleScore
                 };
               }).map(({ possibleScore, odds }) => possibleScore * odds)
                 .reduce((a, b) => a + b);

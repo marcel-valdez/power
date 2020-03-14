@@ -6,11 +6,13 @@ import {Pawn} from '../../core/pawn.mjs';
 import {Side, MoveType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {evaluate, genActions} from '../../ai/eval.mjs';
+import utils from '../../core/utils.mjs';
 import {
   blkPawn, blkKnight, blkRook, whtPawn, whtKnight, whtKing, whtRook
 } from '../../tests/power_test_utils.mjs';
 
 
+utils.disableWarning();
 addTest('evaluate: Starting board has score of 0.0', () => {
   // given
   const startingBoard = new Board();
@@ -30,11 +32,11 @@ addTest(
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: 8.75
+        score: 7.5
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
-        score: 4
+        score: 4.0
       },
       {
         board: [ new King({ side: Side.WHITE }) ],
@@ -96,7 +98,7 @@ addTest(
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: -8.75
+        score: -7.5
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
@@ -164,7 +166,7 @@ addTest(
       },
       {
         board: [ new Rook({ power: -1 }) ],
-        score: 7.5
+        score: 6.25
       },
       {
         board: [ new Knight({ power: -1 }) ],
@@ -203,7 +205,7 @@ addTest(
       },
       {
         board: [ new Knight({ side: Side.BLACK, power: -2 }) ],
-        score: -2.8125
+        score: -2.812
       },
       {
         board: [ new King({ side: Side.BLACK, power: -2 }) ],
