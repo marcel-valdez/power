@@ -53,7 +53,7 @@ export const computeBoardHash = (board) => {
     .map(row => computeRowHash(row))
     .map(x => BigInt(x))
   // shift each by 30 bits to put them at their respective bit position
-    .map((hash, index) => hash << (30n * BigInt(index)))
+    .map((hash, index) => hash << (BigInt(30) * BigInt(index)))
   // OR them to get the final UNIQUE hash
     .reduce((a, b) => a | b);
 };

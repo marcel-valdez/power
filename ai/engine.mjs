@@ -154,19 +154,21 @@ export function Engine({
   /**
    * Evaluates multiple boards and returns the one with the best value.
    */
-  const computeBestBoard = (boards, state, depth, depthLimit) => {
-    checkNotNullOrUndefined(boards);
-    checkNotNullOrUndefined(state);
-    checkNotNullOrUndefined(depth);
+  const computeBestBoard =
+        (boards, state, depth, depthLimit, timeLimit) => {
+          checkNotNullOrUndefined(boards);
+          checkNotNullOrUndefined(state);
+          checkNotNullOrUndefined(depth);
 
-    const isMax = playingSide === state.curSide;
-    const isMin = !isMax;
-    return boards.map(board =>
-      doComputeMove(board, state, depth, depthLimit)
-    ).reduce((a, b) =>
-      (isMax && a.score >= b.score) ||
+          const isMax = playingSide === state.curSide;
+          const isMin = !isMax;
+          return boards.map(
+            board => doComputeMove(
+              board, state, depth, depthLimit, timeLimit))
+            .reduce((a, b) =>
+              (isMax && a.score >= b.score) ||
                (isMin && a.score <= b.score) ? a : b);
-  };
+        };
 
   const getDepthLimitForBoard = (board) => {
     const pieceCount = board.getRows().flat(2)
@@ -186,28 +188,36 @@ export function Engine({
     return maxDepth;
   };
 
-  this.computeMove = (board,
+  this.computeMove = (
+    board,
     state = { alpha: -1000, beta: 1000, curSide: playingSide },
     depth = 0) => {
+
+    let timeLimit = 0;
     if (depth == 0) {
       this.cacheHits = 0;
       startTime = new Date();
+      timeLimit = startTime + timeLimitMillis;
     }
 
     const depthLimit = getDepthLimitForBoard(board);
-    return doComputeMove(board, state, depth, depthLimit);
+    return doComputeMove(board, state, depth, depthLimit, timeLimit);
   };
 
-  const reachedTimeLimit = () => {
-    const now = new Date();
-    return ((now - startTime) >= timeLimitMillis);
+  const now = () => {
+    return new Date();
   };
 
-  const doComputeMove = (board, state, depth, depthLimit) => {
+  const reachedTotalTimeLimit = () => {
+    return ((now() - startTime) >= timeLimitMillis);
+  };
+
+  const doComputeMove = (board, state, depth, depthLimit, branchTimeLimit) => {
     if (board.gameStatus !== GameStatus.IN_PROGRESS ||
         depth > depthLimit ||
         // This check isn't thread-safe
-        reachedTimeLimit()) {
+        now() >= branchTimeLimit ||
+        reachedTotalTimeLimit()) {
       return {
         score: evaluate(board, playingSide),
         action: null,
@@ -231,23 +241,31 @@ export function Engine({
     shuffleArray(validActions);
     let bestScore = isMax ? -1000 : 1000;
     let bestAction = null;
-
     for(let i = 0; i < validActions.length; i++) {
       const {src, dst} = validActions[i];
 
-      const possibilities = computePossibleBoards(board, validActions[i]);
+      const possibilities =
+            computePossibleBoards(board, validActions[i]);
       const nextState = { alpha, beta, curSide: nextSide(curSide) };
+      let actionTimeLimit = branchTimeLimit;
+      if (depth === 0) {
+        actionTimeLimit = now() + (branchTimeLimit / validActions.length);
+      }
 
       const score =
-              possibilities.map(({ boards, odds }) => {
-                const { score: possibleScore } =
-                      computeBestBoard(boards, nextState, depth + 1, depthLimit);
-                return {
-                  odds,
-                  possibleScore
-                };
-              }).map(({ possibleScore, odds }) => possibleScore * odds)
-                .reduce((a, b) => a + b);
+            possibilities.map(({ boards, odds }) => {
+              const { score: possibleScore } = computeBestBoard(
+                boards,
+                nextState,
+                depth + 1,
+                depthLimit,
+                actionTimeLimit);
+              return {
+                odds,
+                possibleScore
+              };
+            }).map(({ possibleScore, odds }) => possibleScore * odds)
+              .reduce((a, b) => a + b);
 
       if (isMax && bestScore < score) {
         bestScore = score;

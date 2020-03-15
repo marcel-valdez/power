@@ -101,9 +101,9 @@ const getRookMovementMultiplier = (board, rook) => {
   checkNotNullOrUndefined(rook);
 
   const rookActions = genActionsForPiece(board, rook);
-  const rookMovesCount = rookActions.length;
-
-  rookActions.filter(action => action.type === MoveType.ATTACK)
+  const actionsCount = rookActions.length;
+  const usefulAttackCount = rookActions.filter(
+    action => action.type === MoveType.ATTACK)
     .map(({dst}) => dst)
     .map(([x,y]) => {
       const defender = board.getPieceAt(x, y);
@@ -126,7 +126,7 @@ const getRookMovementMultiplier = (board, rook) => {
     .reduce((a, b) => a + b, 0);
 
 
-  return (rookMovesCount / 19.0) / 2.0;
+  return (actionsCount + usefulAttackCount / 20.0) / 2.0;
 };
 
 const getRookPositionMultiplier = (board, rook) => {
@@ -144,9 +144,7 @@ const getKnightMovementMultiplier = (board, knight) => {
   checkNotNullOrUndefined(knight);
 
   const actions = genActionsForPiece(board, knight);
-
   const moveCount = actions.length;
-
   const usefulAttackCount = actions
     .filter((action) => action.type === MoveType.ATTACK)
     .map(({dst}) => dst)
@@ -165,11 +163,16 @@ const getKnightMovementMultiplier = (board, knight) => {
         return (knight.power - defender.power) * 2;
       }
 
+      if (defender.type === PieceType.PAWN &&
+          defender.power < knight.power) {
+        return knight.power - defender.power;
+      }
+
       return 0;
     })
     .reduce((a, b) => a + b, 0);
 
-  return ((moveCount + usefulAttackCount) / 17.0) / 2.0;
+  return ((moveCount + usefulAttackCount) / 20.0) / 2.0;
 };
 
 const getKnightXYMultiplier = (board, knight) => {
@@ -210,9 +213,9 @@ const getKnightXYMultiplier = (board, knight) => {
 const getKnightPositionMultiplier = (board, knight) => {
   checkNotNullOrUndefined(board);
   checkNotNullOrUndefined(knight);
+
   const xyMultiplier = getKnightXYMultiplier(board, knight);
   const moveMultiplier = getKnightMovementMultiplier(board, knight);
-
   return xyMultiplier + moveMultiplier;
 };
 
@@ -269,7 +272,7 @@ const getMultiplierForPiece = (board, piece) => {
     positionMultiplier = getKnightPositionMultiplier(board, piece);
     break;
   case PieceType.ROOK:
-    positionMultiplier = 0;//getRookPositionMultiplier(board, piece);
+    positionMultiplier = getRookPositionMultiplier(board, piece);
     break;
   case PieceType.PAWN:
     positionMultiplier = getPawnPositionMultiplier(board, piece);
