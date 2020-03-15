@@ -32,7 +32,7 @@ addTest(
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: 7.5
+        score: 8.75
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
@@ -98,7 +98,7 @@ addTest(
       },
       {
         board: [ new Rook({ side: Side.WHITE }) ],
-        score: -7.5
+        score: -8.75
       },
       {
         board: [ new Knight({ side: Side.WHITE }) ],
@@ -166,7 +166,7 @@ addTest(
       },
       {
         board: [ new Rook({ power: -1 }) ],
-        score: 6.25
+        score: 7.5
       },
       {
         board: [ new Knight({ power: -1 }) ],
