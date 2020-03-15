@@ -13,6 +13,9 @@ function validate_environment {
   type npm &> /dev/null || ::fatal "npm is required"
   [[ -x "${WEB_SERVER_BIN}" ]] || ::fatal "${WEB_SERVER_BIN} is required.\
 Please install it by running npm install."
+
+  [[ "${type}" == "dev" ]] || [[ "${type}" == "dist" ]] || \
+    ::fatal "Unknown deployment tyep: ${type}"
 }
 
 function is_old_web_server_running {
@@ -29,7 +32,9 @@ function stop_old_web_server {
 
 function start_web_server {
   ::info "Starting new web server"
-  pushd ${SCRIPT_DIR} >& /dev/null
+  local dir=${SCRIPT_DIR}
+  [[ "${type}" == "dist" ]] && dir="${dir}/dist"
+  pushd "${dir}" >& /dev/null
   local temp_filepath=$(tempfile)
   "${WEB_SERVER_BIN}" --log.format dev &> ${temp_filepath} &
   local web_server_pid=$!
@@ -41,18 +46,23 @@ function start_web_server {
 
 function print_usage {
   cat <<EOF
-${SCRIPT} [--start-only] [--stop] [--start] [--help]
+${SCRIPT} [--start-only] [--stop] [--start] [--type (dev|dist)] [--help]
 
 start: Stops the previous web server (if any) and starts a new one.
        This is done by default whether this parameter is passed in or not.
 start-only: Does not try to stop a previous instance.
 stop: Only stops the current web server (if any).
+type: Deployment type for the local web server. Default: dev
+  dev: Hosts the files in the source code as-is.
+  dist: Hosts the files in the 'dist/' folder. Note that you need to execute
+        'npm run build' in order to create the outputs for the dist/ folder.
 help: Prints this help message.
 EOF
 }
 
 start_server=1
 stop_server=1
+type='dev'
 function parse_params {
   while [ $# -gt 0 ]; do
   local arg="$1"
@@ -68,6 +78,10 @@ function parse_params {
     --help)
       print_usage
       exit 0
+      ;;
+    --type)
+      type="$2"
+      shift
       ;;
     *)
       ::error "Unknown parameter ${arg}"

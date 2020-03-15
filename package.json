@@ -8,8 +8,11 @@
   },
   "scripts": {
     "test": "./handle_watched_file.sh run_all_tests.mjs",
-    "start-local-web-server": "./local-web-server.sh --start",
-    "stop-local-web-server": "./local-web-server.sh --stop"
+    "start-web-server-dev": "./local-web-server.sh --start",
+    "start-web-server-dist": "./local-web-server.sh --start --type dist",
+    "stop-web-server": "./local-web-server.sh --stop",
+    "build": "$(npm bin)/gulp",
+    "build-start": "npm run build && npm run start-web-server-dist"
   },
   "repository": {
     "type": "git",
@@ -30,6 +33,18 @@
   },
   "homepage": "https://github.com/marcel-valdez/power#readme",
   "devDependencies": {
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.8.7",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-csso": "^4.0.1",
+    "gulp-minify": "^3.1.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-rollup": "^2.17.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-terser-js": "^5.1.2",
     "local-web-server": "^4.0.0"
   }
 }

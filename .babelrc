@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    ["@babel/plugin-proposal-class-properties", { "loose": false }]
+  ],
+  minified: true,
+  presets: ["@babel/preset-env"]
+}
