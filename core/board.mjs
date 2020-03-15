@@ -268,7 +268,7 @@ function Board(state = DEFAULT_BOARD_STATE) {
     return gameStatus;
   };
 
-  const doAttack = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
+  const doAttack = (src, dst, predefinedOutcome = EngineOutcome) => {
     const [x1, y1] = src;
     const [x2, y2] = dst;
     const attacker = this.getPieceAt(x1, y1);
@@ -345,11 +345,18 @@ function Board(state = DEFAULT_BOARD_STATE) {
   };
 
   const doPromotionAttack = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
+    const [x1, y1] = src;
     const [x2, y2] = dst;
     const atkBoard = doAttack(src, dst, predefinedOutcome);
     const winner = atkBoard.getPieceAt(x2, y2);
+    const defender = this.getPieceAt(x2, y2);
     if (winner.type === PieceType.PAWN) {
-      return doPromotion(src, dst);
+      return doPromotion(src, dst).copy({
+        gameStatus: computeGameStatus(
+          { result: Winner.ATTACKER, winner },
+          winner,
+          defender)
+      });
     } else {
       return atkBoard;
     }
