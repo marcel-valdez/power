@@ -32,7 +32,7 @@ turn and the sacrificed piece goes away. The King can't sacrifice anyone.
 
 ## Pieces
 
-- **Pawn**:
+- **Pawn (♙)**:
   - It can move forwards 1 or 2 of squares.
   - It can only attack an enemy that is directly next to it in a front diagonal.
     - If it passes an enemy pawn when moving 2 squares, the enemy pawn can attack it "en passant",
@@ -42,18 +42,18 @@ turn and the sacrificed piece goes away. The King can't sacrifice anyone.
   - It can only sacrifice an ally that is directly next to it in diagonal.
   - If it reaches the other end of the board, it can be converted into a Knight or Rook.
 
-- **Knight**:
+- **Knight (♘)**:
   - It can move one square in any direction.
   - It can move 2 squares in any direction if there is a piece in the direction it is moved and the destination square is empty.
   - It can attack an enemy that is behind a piece in any direction.
   - It can sacrifice an ally that is behind a piece in any direction.
 
-- **Rook**:
+- **Rook (♖)**:
   - It can move any numbers of squares vertically or horizontally (without skipping pieces).
   - It can attack enemies at any distance vertically or horizontally (without skipping pieces).
   - It can sacrifice an ally at any distance vertically or horizontally (without skipping pieces).
 
-- **King**:
+- **King (♔)**:
   - It can move one square in any direction.
   - It can attack enemies one square in any direction.
     - When attacked by an enemy, the probability of winning is *purely* determined by the health of the king, the health of the attacking piece does not matter.

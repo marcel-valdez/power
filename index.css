@@ -4,7 +4,7 @@ body {
   font-size: calc(12px + 2 * ((100vw - 320px) / 880));
 }
 
-h1 {
+h1, h2, h3 {
   align-items: center;
   text-align: center;
 }
