@@ -20,16 +20,20 @@ const DEFAULT_STATE = Object.freeze({
   selectedPos: null,
   src: null,
   dst: null,
-  side: Side.WHITE
+  side: Side.WHITE,
+  engineMoveId: 0
 });
 
 const ENGINE_SIDE = Side.BLACK;
 const HUMAN_SIDE = Side.WHITE;
-const engineWorker = new Worker('../ai/engineWorker.mjs', { type: 'module' });
+const engineWorker = new Worker('ai/engineWorker.mjs', { type: 'module' });
 
 export class BoardUi extends Component {
-  state = Object.assign({}, DEFAULT_STATE);
-  stateStack = [DEFAULT_STATE];
+  constructor() {
+    super();
+    this.state = Object.assign({}, DEFAULT_STATE);
+    this.stateStack = [DEFAULT_STATE];
+  }
 
   updateState(update) {
     this.setState(
@@ -39,10 +43,12 @@ export class BoardUi extends Component {
   resetState() {
     this.stateStack = [DEFAULT_STATE];
     this.updateState(DEFAULT_STATE);
-  };
+  }
 
   pushState(undoState) {
-    this.stateStack.push(undoState);
+    const engineMoveId =
+          Math.floor(undoState.engineMoveId + 1000 + (Math.random() * 10000));
+    this.stateStack.push(Object.assign({}, undoState, { engineMoveId }));
   }
 
   popState() {
@@ -97,29 +103,64 @@ export class BoardUi extends Component {
     } // else the user clicked on an empty square
   }
 
-  engineMove(board) {
-    new Promise((resolve, reject) => {
-      // TODO: Make the side user selected
-      engineWorker.postMessage(
-        {board: board.toJson(), side: ENGINE_SIDE});
-      engineWorker.onmessage = ({data: action}) => resolve(action);
-    }).then((action) => {
-      let aiMoveBoard = board.makeMove(action.src, action.dst);
-      if (aiMoveBoard.pendingPromotion) {
-        // assume AI wants a rook
-        aiMoveBoard = aiMoveBoard.setPromotion(PieceType.ROOK);
+  genEngineMoveHandler(id, reject, resolve) {
+    const engineMoveHandler = ({data: action}) => {
+      if (id !== action.engineMoveId) {
+        // the event was not meant for this moveHandler, due to player undo.
+        return;
       }
 
-      const aiMoveState = {
-        board: aiMoveBoard,
-        selectedPos: null,
-        src: action.src,
-        dst: action.dst,
-        side: HUMAN_SIDE
-      };
-      this.pushState(Object.assign({}, this.state));
-      this.updateState(aiMoveState);
+      if (action.engineMoveId !== this.state.engineMoveId) {
+        const msg =
+              `Ignored AI's move with id: ${action.engineMoveId}, ` +
+              `because we expected id: ${this.state.engineMoveId}`;
+        reject(msg);
+      } else {
+        resolve(action);
+      }
+
+      engineWorker.removeEventListener('message', engineMoveHandler);
+    };
+
+    return engineMoveHandler;
+  }
+
+  genAiMoveBoard({ src, dst }) {
+    const aiMoveBoard = this.state.board.makeMove(src, dst);
+    if (aiMoveBoard.pendingPromotion) {
+      // TODO: Don't assume AI wants a rook.
+      return aiMoveBoard.setPromotion(PieceType.ROOK);
+    }
+
+    return aiMoveBoard;
+  }
+
+  pushAiState(aiBoard, {src, dst}) {
+    this.pushState(this.state);
+    this.updateState({
+      board: aiBoard,
+      selectedPos: null,
+      src: src,
+      dst: dst,
+      side: HUMAN_SIDE,
+      engineMoveId: this.state.engineMoveId + 1
     });
+  }
+
+  engineMove(board, engineMoveId) {
+    new Promise((resolve, reject) => {
+      const id = this.state.engineMoveId;
+      engineWorker.postMessage({
+        board: board.toJson(),
+        side: ENGINE_SIDE,
+        engineMoveId: id
+      });
+      engineWorker.addEventListener(
+        'message',
+        this.genEngineMoveHandler(id, reject, resolve));
+    })
+      .then((action) => this.pushAiState(this.genAiMoveBoard(action), action))
+      .catch(console.log);
   }
 
   movePiece(targetPosition = []) {
@@ -208,8 +249,8 @@ export class BoardUi extends Component {
     };
 
     const rows = board.getRows()
-          .map((row = [], y = 0) =>
-               html`
+      .map((row = [], y = 0) =>
+        html`
 <${RowUi} y=${y}
           row=${row}
           onClickPiece=${(pos = []) => this.clickPiece(pos)}
