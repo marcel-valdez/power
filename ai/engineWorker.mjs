@@ -14,7 +14,7 @@ const logResults = (result, engine) => {
 // TODO: The engine's playing side should be dynamically set through a message
 // TODO: The engine's playing strength (maxDepth) should be dynamically set by
 //       the user, through a message.
-const engine = new Engine({ maxDepth: 4, playingSide: Side.BLACK });
+const engine = new Engine({ maxDepth: 3, playingSide: Side.BLACK });
 onmessage = ({data: message}) => {
   const { board, side, engineMoveId } = message;
   new Promise((resolve, reject) => {
