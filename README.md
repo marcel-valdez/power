@@ -2,6 +2,8 @@
 
 Power is a turn-based strategy game where the goal is to kill the enemy King.
 
+**Play Power on [this website](https://marcel.bowlitz.com/power/index.html)**
+
 It has some similarities to chess, except when you "kill" a piece there is a probability that you lose the "battle" and lose your attacking piece.
 
 ![Node.js CI](https://github.com/marcel-valdez/power/workflows/Node.js%20CI/badge.svg?branch=master&event=push)
