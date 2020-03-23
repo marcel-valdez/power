@@ -12,6 +12,7 @@ import {ResetButton} from '../ui/resetButton.mjs';
 import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
 import {EngineThinkingModal} from '../ui/engineThinkingModal.mjs';
+import {HelpButton, HelpModal} from '../ui/helpModal.mjs';
 import utils from '../core/utils.mjs';
 
 
@@ -21,7 +22,8 @@ const DEFAULT_STATE = Object.freeze({
   src: null,
   dst: null,
   side: Side.WHITE,
-  engineMoveId: 0
+  engineMoveId: 0,
+  showHelp: false
 });
 
 const ENGINE_SIDE = Side.BLACK;
@@ -54,6 +56,7 @@ export class BoardUi extends Component {
   popState() {
     if (this.stateStack.length === 1) {
       utils.log('No more moves to undo.');
+      return;
     }
 
     let oldState = this.stateStack.pop();
@@ -204,6 +207,12 @@ export class BoardUi extends Component {
     this.engineMove(promotedBoard);
   }
 
+  toggleHelpMessage() {
+    const { showHelp } = this.state;
+    const newShowHelp = !showHelp;
+    this.updateState({ showHelp: newShowHelp });
+  }
+
   render(
     { },
     {
@@ -267,9 +276,15 @@ export class BoardUi extends Component {
 <div class='btn-container'>
   <${ResetButton} onClick=${() => this.resetState()} />
   <${UndoButton} onClick=${() => this.popState()} />
+  <${HelpButton} onClick=${() => this.toggleHelpMessage()} />
 </div>`;
 
-    if (board.gameStatus !== GameStatus.IN_PROGRESS) {
+    if (this.state.showHelp === true) {
+      boardUi = html`
+${boardUi}
+<${HelpModal} onClick${() => this.toggleHelpMessage()}/>
+`;
+    } else if (board.gameStatus !== GameStatus.IN_PROGRESS) {
       boardUi = html`${boardUi}
 <${GameEndedModal} gameStatus=${board.gameStatus} />`;
     } else if (board.pendingPromotion) {
