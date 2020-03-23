@@ -41,7 +41,7 @@ function start_web_server {
          ${temp_filepath} &
   else
     [[ -z ${port} ]] && port=80
-    "${NODE_BIN}" app.js --port "${port}" --static_path "${SCRIPT_DIR}}/dist" \
+    "${NODE_BIN}" app.js --port "${port}" --static_path "${SCRIPT_DIR}/dist" \
       &> ${temp_filepath} &
   fi
   local web_server_pid=$!

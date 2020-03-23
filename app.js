@@ -9,6 +9,7 @@ function main({ port, staticPath }) {
   app.use(express.static(staticPath));
   app.listen(port, () => {
     console.log(`Listening on port ${port}.`);
+    console.log(`Static path is: ${staticPath}.`);
   });
 }
 
