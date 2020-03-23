@@ -35,11 +35,13 @@ function start_web_server {
   pushd "${SCRIPT_DIR}" >& /dev/null
   local temp_filepath=$(tempfile)
   if [[ "${type}" == "dev" ]]; then
-    DEBUG=express:* "${NODE_BIN}" app.js --port 8000 \
+    [[ -z ${port} ]] && port=8000
+    DEBUG=express:* "${NODE_BIN}" app.js --port "${port}" \
          --static_path "${SCRIPT_DIR}" &> \
          ${temp_filepath} &
   else
-    "${NODE_BIN}" app.js --port 80 --static_path "${SCRIPT_DIR}}/dist" \
+    [[ -z ${port} ]] && port=80
+    "${NODE_BIN}" app.js --port "${port}" --static_path "${SCRIPT_DIR}}/dist" \
       &> ${temp_filepath} &
   fi
   local web_server_pid=$!
@@ -71,6 +73,7 @@ start_server=1
 stop_server=1
 type='dev'
 port=80
+! [[ -z ${PORT} ]] && port=${PORT}
 function parse_params {
   while [ $# -gt 0 ]; do
     local arg="$1"
