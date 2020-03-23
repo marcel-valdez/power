@@ -2,18 +2,18 @@
   "name": "power",
   "version": "0.0.1",
   "description": "Power the 1v1 turn-based strategy game",
-  "main": "index.mjs",
+  "main": "app.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
     "test": "./handle_watched_file.sh run_all_tests.mjs",
-    "start-web-server-dev": "./local-web-server.sh --start",
-    "start-web-server-dist": "./local-web-server.sh --start --type dist",
-    "stop-web-server": "./local-web-server.sh --stop",
+    "start-dev": "./web-server.sh --start --port 8000",
+    "start": "./web-server.sh --start --type dist",
+    "stop": "./web-server.sh --stop",
     "markdown": "$(npm bin)/markdown README.md --flavor gfm --context marcel-valdez/power > ./dist/rules.html",
-    "build": "$(npm bin)/gulp",
-    "build-start": "npm run build && npm run markdown && npm run start-web-server-dist"
+    "build": "$(npm bin)/gulp && npm run markdown",
+    "build-start": "npm run build && npm run start"
   },
   "repository": {
     "type": "git",
@@ -37,6 +37,7 @@
     "@babel/core": "^7.8.7",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/preset-env": "^7.8.7",
+    "express": "^4.17.1",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-concat": "^2.6.1",
@@ -46,7 +47,11 @@
     "gulp-rollup": "^2.17.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-terser-js": "^5.1.2",
-    "local-web-server": "^4.0.0",
-    "markdown-to-html": "0.0.13"
+    "markdown-to-html": "0.0.13",
+    "yargs": "^15.3.1"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "yargs": "^15.3.1"
   }
 }

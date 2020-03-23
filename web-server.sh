@@ -4,18 +4,18 @@
 SCRIPT="${BASH_SOURCE[0]}"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 NPM_BIN=$(npm bin)
-WEB_SERVER_BIN="${NPM_BIN}/ws"
+NODE_BIN=$(type -p node 2>/dev/null)
 return_value=
 
 source "${SCRIPT_DIR}/boilerplate.sh"
 
 function validate_environment {
   type npm &> /dev/null || ::fatal "npm is required"
-  [[ -x "${WEB_SERVER_BIN}" ]] || ::fatal "${WEB_SERVER_BIN} is required.\
+  [[ -x "${NODE_BIN}" ]] || ::fatal "${NODE_BIN} is required.\
 Please install it by running npm install."
 
   [[ "${type}" == "dev" ]] || [[ "${type}" == "dist" ]] || \
-    ::fatal "Unknown deployment tyep: ${type}"
+    ::fatal "Unknown deployment type: ${type}"
 }
 
 function is_old_web_server_running {
@@ -32,11 +32,16 @@ function stop_old_web_server {
 
 function start_web_server {
   ::info "Starting new web server"
-  local dir=${SCRIPT_DIR}
-  [[ "${type}" == "dist" ]] && dir="${dir}/dist"
-  pushd "${dir}" >& /dev/null
+  pushd "${SCRIPT_DIR}" >& /dev/null
   local temp_filepath=$(tempfile)
-  "${WEB_SERVER_BIN}" --log.format dev &> ${temp_filepath} &
+  if [[ "${type}" == "dev" ]]; then
+    DEBUG=express:* "${NODE_BIN}" app.js --port 8000 \
+         --static_path "${SCRIPT_DIR}" &> \
+         ${temp_filepath} &
+  else
+    "${NODE_BIN}" app.js --port 80 --static_path "${SCRIPT_DIR}}/dist" \
+      &> ${temp_filepath} &
+  fi
   local web_server_pid=$!
   echo ${web_server_pid} > /tmp/power-local-web-server.pid
   popd >& /dev/null
@@ -47,7 +52,9 @@ function start_web_server {
 function print_usage {
   cat <<EOF
 ${SCRIPT} [--start-only] [--stop] [--start] [--type (dev|dist)] [--help]
+          [--port|-p (port number)]
 
+port: Port on which to host the server. Default: 80
 start: Stops the previous web server (if any) and starts a new one.
        This is done by default whether this parameter is passed in or not.
 start-only: Does not try to stop a previous instance.
@@ -63,35 +70,39 @@ EOF
 start_server=1
 stop_server=1
 type='dev'
+port=80
 function parse_params {
   while [ $# -gt 0 ]; do
-  local arg="$1"
-  case "${arg}" in
-    --start)
-      ;;
-    --start-only)
-      stop_server=0
-      ;;
-    --stop)
-      start_server=0
-      ;;
-    --help)
-      print_usage
-      exit 0
-      ;;
-    --type)
-      type="$2"
-      shift
-      ;;
-    *)
-      ::error "Unknown parameter ${arg}"
-      print_usage
-      exit 1
-      ;;
-  esac
-  shift
-done
-
+    local arg="$1"
+    case "${arg}" in
+      --port|-p)
+        port=$2
+        shift
+        ;;
+      --start)
+        ;;
+      --start-only)
+        stop_server=0
+        ;;
+      --stop)
+        start_server=0
+        ;;
+      --help)
+        print_usage
+        exit 0
+        ;;
+      --type)
+        type="$2"
+        shift
+        ;;
+      *)
+        ::error "Unknown parameter ${arg}"
+        print_usage
+        exit 1
+        ;;
+    esac
+    shift
+  done
 }
 
 function main {
