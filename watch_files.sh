@@ -10,3 +10,4 @@ watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/ai" "${DIR}/handle_w
 
 watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/tests" "${DIR}/handle_watched_file.sh" __file__ &
 
+wait
