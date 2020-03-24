@@ -6,8 +6,6 @@ import {
   Side
 } from '../core/power.common.mjs';
 import {
-  Board,
-  computeSacrificePower,
   computePieceWinOdds,
   EngineOutcome
 } from '../core/board.mjs';
@@ -242,8 +240,6 @@ export function Engine({
     let bestScore = isMax ? -1000 : 1000;
     let bestAction = null;
     for(let i = 0; i < validActions.length; i++) {
-      const {src, dst} = validActions[i];
-
       const possibilities =
             computePossibleBoards(board, validActions[i]);
       const nextState = { alpha, beta, curSide: nextSide(curSide) };

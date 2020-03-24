@@ -1,6 +1,6 @@
 import {Rook} from '../../core/rook.mjs';
 import {King} from '../../core/king.mjs';
-import {Winner, Side, MoveType, PieceType} from '../../core/power.common.mjs';
+import {Side, MoveType, PieceType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import utils from '../../core/utils.mjs';
 

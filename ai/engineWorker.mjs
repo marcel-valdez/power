@@ -3,6 +3,7 @@ import {Engine} from '../ai/engine.mjs';
 import {Board} from '../core/board.mjs';
 import {Side} from '../core/power.common.mjs';
 
+
 const logResults = (result, engine) => {
   utils.info('Result:', JSON.stringify(result));
   utils.info('Time:', engine.lastDuration() / 1000, 's');

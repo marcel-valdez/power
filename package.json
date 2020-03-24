@@ -7,6 +7,7 @@
     "test": "tests"
   },
   "scripts": {
+    "watch": "./watch_files.sh",
     "test": "./handle_watched_file.sh run_all_tests.mjs",
     "start-dev": "./web-server.sh --start --port 8000",
     "start": "./web-server.sh --start --type dist --port ${PORT}",

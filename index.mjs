@@ -2,6 +2,7 @@ import {html, render} from './ui/renderer.mjs';
 import {BoardUi} from './ui/board.mjs';
 import utils from './core/utils.mjs';
 
+
 utils.disableLogging();
 
 // NOTE: When we start receiving board updates from the server, we will have
