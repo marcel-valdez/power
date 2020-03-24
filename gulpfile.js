@@ -1,10 +1,11 @@
-
+const fs = require('fs');
 const gulp = require('gulp');
 const rollup = require('gulp-rollup');
 const terser = require('gulp-terser-js');
 const minify = require('gulp-minify');
 const rename = require('gulp-rename');
 const minifyCSS = require('gulp-csso');
+const replace = require('gulp-replace');
 
 function bundle_minify(cb = () => {}) {
 
@@ -36,7 +37,13 @@ function bundle_minify(cb = () => {}) {
 };
 
 function resources(cb = () => {}) {
+  let gaHtml = '';
+  if (process.env.NODE_ENV === 'production') {
+    gaHtml = fs.readFileSync('./prod/google_analytics.html');
+  }
+
   gulp.src('index.html')
+    .pipe(replace('<!-- google_analytics -->', gaHtml))
     .pipe(gulp.dest('./dist/'));
 
   gulp.src('index.css')
