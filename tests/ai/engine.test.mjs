@@ -1,15 +1,10 @@
 import utils from '../../core/utils.mjs';
 import {Board} from '../../core/board.mjs';
-import {Rook} from '../../core/rook.mjs';
-import {King} from '../../core/king.mjs';
-import {Knight} from '../../core/knight.mjs';
-import {Pawn} from '../../core/pawn.mjs';
-import {Side, GameStatus, MoveType} from '../../core/power.common.mjs';
+import {Side, MoveType} from '../../core/power.common.mjs';
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {Engine} from '../../ai/engine.mjs';
 import {
-  blkPawn, blkKnight, blkRook, whtPawn, whtKnight, whtKing, whtRook,
-  blkKing
+  blkPawn, blkKnight, blkRook, whtPawn, whtKing, blkKing
 } from '../../tests/power_test_utils.mjs';
 
 
@@ -28,7 +23,7 @@ addTest('Engine.computeMove: first move', () => {
   assert.notNull(result.action);
 });
 
-addTest('Engine.computeMove: caches results.', () => {return;
+addTest('Engine.computeMove: caches results.', () => {
   // given
   const board = new Board();
   const maxDepth = 1;
@@ -44,7 +39,7 @@ addTest('Engine.computeMove: caches results.', () => {return;
   assert.areSame(result, original);
 });
 
-addTest('Engine.computeMove: makes obvious moves.', () => {return;
+addTest('Engine.computeMove: makes obvious moves.', () => {
   [
     {
       squares: [
