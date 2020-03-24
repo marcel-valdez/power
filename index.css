@@ -9,6 +9,15 @@ h1, h2, h3 {
   text-align: center;
 }
 
+.power-title {
+  font-size: 40pt;
+}
+
+.power-title tag {
+  display: inline-block;
+  width: 86px;
+}
+
 #power {
 
 }
