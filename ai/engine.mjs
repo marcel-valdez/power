@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import utils from '../core/utils.mjs';
 import {
   GameStatus,
@@ -48,7 +50,6 @@ export function Engine({
   checkArgument(() => playingSide === Side.WHITE || playingSide === Side.BLACK,
     'Side needs to be Side.WHITE or Side.BLACK');
 
-  let _maxDepth = maxDepth;
   const _whiteCache = new Cache(20000);
   const _blackCache = new Cache(20000);
 
@@ -94,7 +95,7 @@ export function Engine({
     }
     case MoveType.EN_PASSANT_ATTACK: {
       const [x1,y1] = src;
-      const [x2,y2] = dst;
+      const [x2] = dst;
       const attacker = board.getPieceAt(x1,y1);
       let enPassantPiece = board.getPieceAt(x2, y1);
       const attackWinOdds =
@@ -110,7 +111,7 @@ export function Engine({
         }
       ];
     }
-    case MoveType.PROMOTION_ATTACK:
+    case MoveType.PROMOTION_ATTACK: {
       const promoAttackWinOdds =
         computePieceWinOdds(board.getPieceAt(...src), board.getPieceAt(...dst));
       const promoBoard = board.makeMove(src, dst, EngineOutcome.ALWAYS_WIN);
@@ -127,13 +128,14 @@ export function Engine({
           odds: promoAttackWinOdds
         }
       ];
+    }
     case MoveType.SACRIFICE:
       // only one possible board
       return [{
         boards: [board.makeMove(src, dst)],
         odds: 1.0
       }];
-    case MoveType.PROMOTION:
+    case MoveType.PROMOTION: {
       const promotionPending = board.makeMove(src, dst);
       return [
         {
@@ -144,6 +146,7 @@ export function Engine({
           odds: 1.0
         }
       ];
+    }
     default:
       throw new Error(`Invalid move type: ${type}`);
     }

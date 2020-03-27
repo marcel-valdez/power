@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {MoveType, Side, PieceType} from '../core/power.common.mjs';
 import {applyProps} from '../core/pieces.mjs';
 import utils from '../core/utils.mjs';

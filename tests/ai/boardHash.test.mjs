@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {computeBoardHash} from '../../ai/boardHash.mjs';
 import {

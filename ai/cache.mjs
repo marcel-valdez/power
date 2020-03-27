@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import utils from '../core/utils.mjs';
 
 export function Cache(maxEntries = 10000) {

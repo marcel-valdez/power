@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import utils from '../core/utils.mjs';
 import {
   GameStatus,
@@ -9,8 +11,7 @@ import {
   computeWinOdds
 } from '../core/board.mjs';
 import {
-  checkNotNullOrUndefined,
-  checkArgument
+  checkNotNullOrUndefined
 } from '../core/preconditions.mjs';
 
 
@@ -74,20 +75,20 @@ const getRookMultiplierForXY = (rook) => {
   let verticalMultiplier = 0;
 
   if (x === 2) {
-    horizontalMultiplier += .25;
+    horizontalMultiplier += 0.25;
   } else if (x === 1 || x === 3) {
-    horizontalMultiplier += .1;
+    horizontalMultiplier += 0.1;
   }
 
   if (rook.side === Side.WHITE) {
     if (y === 0) {
-      verticalMultiplier += .25;
+      verticalMultiplier += 0.25;
     } else if (y === 1) {
       verticalMultiplier += 0.5;
     }
   } else {
     if (y === 7) {
-      verticalMultiplier += .25;
+      verticalMultiplier += 0.25;
     } else if (y === 6) {
       verticalMultiplier += 0.5;
     }
@@ -184,14 +185,14 @@ const getKnightXYMultiplier = (board, knight) => {
   let verticalMultiplier = 0;
 
   if (x === 2) {
-    horizontalMultiplier += .25;
+    horizontalMultiplier += 0.25;
   } else if (x === 1 || x === 3) {
-    horizontalMultiplier += .1;
+    horizontalMultiplier += 0.1;
   }
 
   if (knight.side === Side.WHITE) {
     if (y === 0) {
-      verticalMultiplier += .1;
+      verticalMultiplier += 0.1;
     } else if (y === 1 || y === 3) {
       verticalMultiplier += 0.33;
     } else if (y === 2) {
@@ -199,7 +200,7 @@ const getKnightXYMultiplier = (board, knight) => {
     }
   } else {
     if (y === 7) {
-      verticalMultiplier += .1;
+      verticalMultiplier += 0.1;
     } else if (y === 6 || y === 4) {
       verticalMultiplier += 0.33;
     } else if (y === 5) {
@@ -228,9 +229,9 @@ const getPawnPositionMultiplier = (board, pawn) => {
   let verticalMultiplier = 0;
 
   if (x === 2) {
-    horizontalMultiplier += .25;
+    horizontalMultiplier += 0.25;
   } else if (x === 1 || x === 3) {
-    horizontalMultiplier += .1;
+    horizontalMultiplier += 0.1;
   }
 
   if (pawn.side === Side.WHITE) {

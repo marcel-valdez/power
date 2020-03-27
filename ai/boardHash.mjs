@@ -1,6 +1,6 @@
+// jshint esversion: 6
+
 import {
-  GameStatus,
-  MoveType,
   PieceType,
   Side
 } from '../core/power.common.mjs';

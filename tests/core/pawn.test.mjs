@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {Pawn} from '../../core/pawn.mjs';
 import {King} from '../../core/king.mjs';
 import {Side, MoveType} from '../../core/power.common.mjs';
@@ -37,7 +39,7 @@ addTest(
     const target = new Pawn({position: [3,3]});
     // when
     const moveType = target.computeMoveType({
-      containsPieceAt: (x,y) => false
+      containsPieceAt: () => false
     }, 3, 3);
     // then
     assert.equals(moveType, MoveType.INVALID);
@@ -49,8 +51,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => false,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => false,
+      containsPieceAt: () => false
     };
 
     assert.equals(
@@ -66,8 +68,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false,
     };
 
     assert.equals(
@@ -83,8 +85,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x, y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
 
     assert.equals(
@@ -106,8 +108,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.BLACK});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x, y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
 
     assert.equals(
@@ -129,8 +131,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
 
     assert.equals(
@@ -152,8 +154,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     assert.equals(
       // when
@@ -174,8 +176,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x, y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     // when
     // then
@@ -201,8 +203,8 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
 
     [
@@ -226,9 +228,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Pawn()
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Pawn()
     };
     // when
     const moveType = target.computeMoveType(board, 3, 2);
@@ -245,9 +247,9 @@ addTest(
     assert.equals(
       // when
       target.computeMoveType({
-        isWithinBoundaries: (x,y) => true,
+        isWithinBoundaries: () => true,
         containsPieceAt: (x,y) => x == 3 && y == 2,
-        getPieceAt: (x, y) => new Pawn()
+        getPieceAt: () => new Pawn()
       }, 3, 1),
       // then
       MoveType.INVALID);
@@ -255,9 +257,9 @@ addTest(
     assert.equals(
       // when
       target.computeMoveType({
-        isWithinBoundaries: (x,y) => true,
+        isWithinBoundaries: () => true,
         containsPieceAt: (x,y) => x == 3 && y == 1,
-        getPieceAt: (x, y) => new Pawn()
+        getPieceAt: () => new Pawn()
       }, 3, 1),
       // then
       MoveType.INVALID);
@@ -269,9 +271,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Pawn({side: Side.BLACK})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Pawn({side: Side.BLACK})
     };
 
     assert.equals(
@@ -295,9 +297,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.BLACK});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Pawn({side: Side.WHITE})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Pawn({side: Side.WHITE})
     };
 
     assert.equals(
@@ -321,9 +323,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Pawn({side: Side.WHITE})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Pawn({side: Side.WHITE})
     };
 
     assert.equals(
@@ -347,9 +349,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.BLACK});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Pawn({side: Side.BLACK})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Pawn({side: Side.BLACK})
     };
 
     assert.equals(
@@ -373,9 +375,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new King({side: Side.WHITE})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new King({side: Side.WHITE})
     };
 
     assert.equals(
@@ -400,8 +402,8 @@ addTest(
     // given
     const target = new Pawn({position: [1,1]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     assert.equals(
       // when
@@ -416,8 +418,8 @@ addTest(
     // given
     const target = new Pawn({ side: Side.WHITE, position: [3,3] });
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false,
       enPassant: new Pawn({ side: Side.BLACK, position: [2,3] })
     };
     assert.equals(
@@ -433,8 +435,8 @@ addTest(
     // given
     const target = new Pawn({ side: Side.BLACK, position: [3,3] });
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false,
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false,
       enPassant: new Pawn({ side: Side.WHITE, position: [4,3] })
     };
     assert.equals(
@@ -450,9 +452,9 @@ addTest(
     // given
     const target = new Pawn({position: [3,1], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: () => true,
       containsPieceAt: (x,y) => x == 4 && y == 0,
-      getPieceAt: (x,y) => new Pawn({side: Side.BLACK})
+      getPieceAt: () => new Pawn({side: Side.BLACK})
     };
 
     assert.equals(
@@ -469,9 +471,9 @@ addTest(
     // given
     const target = new Pawn({position: [6,6], side: Side.BLACK});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: () => true,
       containsPieceAt: (x,y) => x == 7 && y == 7,
-      getPieceAt: (x,y) => new Pawn({side: Side.WHITE})
+      getPieceAt: () => new Pawn({side: Side.WHITE})
     };
 
     assert.equals(

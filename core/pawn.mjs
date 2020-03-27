@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {MoveType, Side, PieceType} from '../core/power.common.mjs';
 import {applyProps} from '../core/pieces.mjs';
 import utils from '../core/utils.mjs';
@@ -87,7 +89,6 @@ function Pawn(state = DEFAULT_STATE) {
   };
 
   const handleForwardsMove = (board, x, y) => {
-    const deltaX = Math.abs(x - this.x);
     const deltaY = Math.abs(y - this.y);
 
     if (deltaY === 2) {

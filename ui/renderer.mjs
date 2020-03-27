@@ -1,9 +1,11 @@
-import { h, Component, render } from 'https://unpkg.com/preact@10.3.3?module';
-import htm from 'https://unpkg.com/htm@3.0.3?module';
+// jshint esversion: 6
+
+import { h, Component, render } from 'preact';
+import htm from 'htm';
+
 
 /**
- * Wrapper module to be the only place where libraries are fetched from the
- * Internet.
+ * Wrapper module to be the only place where 3rd party libraries imported.
  */
 
 const html = htm.bind(h);

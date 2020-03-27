@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import utils from '../../core/utils.mjs';
 import {Board} from '../../core/board.mjs';
 import {Side, MoveType} from '../../core/power.common.mjs';

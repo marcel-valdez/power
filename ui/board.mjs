@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {html, Component} from '../ui/renderer.mjs';
 import {Board, computePieceWinOdds} from '../core/board.mjs';
 import {
@@ -150,7 +152,7 @@ export class BoardUi extends Component {
     });
   }
 
-  engineMove(board, engineMoveId) {
+  engineMove(board) {
     new Promise((resolve, reject) => {
       const id = this.state.engineMoveId;
       engineWorker.postMessage({

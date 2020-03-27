@@ -1,4 +1,7 @@
+// jshint esversion: 6
+
 import {html, Component} from '../ui/renderer.mjs';
+
 
 export class EngineThinkingModal extends Component {
   render({ }, { }) {

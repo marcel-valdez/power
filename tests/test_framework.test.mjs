@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import utils from '../core/utils.mjs';
 import {addTest, assert} from '../tests/test_framework.mjs';
 

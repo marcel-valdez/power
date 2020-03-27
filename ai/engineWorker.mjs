@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import utils from '../core/utils.mjs';
 import {Engine} from '../ai/engine.mjs';
 import {Board} from '../core/board.mjs';
@@ -24,7 +26,7 @@ onmessage = ({data: message}) => {
     utils.disableLogging();
     setTimeout(() => resolve(engine.computeMove(Board.fromJson(board))), 1);
   }).then((result) => {
-    result.action['engineMoveId'] = engineMoveId;
+    result.action.engineMoveId = engineMoveId;
     postMessage(result.action);
     utils.enableLogging();
     logResults(result, engine);

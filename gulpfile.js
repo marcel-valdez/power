@@ -1,40 +1,43 @@
+// !/usr/bin/env node
+// jshint esversion: 8
+
+const os = require('os');
 const fs = require('fs');
 const gulp = require('gulp');
-const rollup = require('gulp-rollup');
+const bundler = require('./bundler.js');
 const terser = require('gulp-terser-js');
 const minify = require('gulp-minify');
 const rename = require('gulp-rename');
 const minifyCSS = require('gulp-csso');
 const replace = require('gulp-replace');
 
-function bundle_minify(cb = () => {}) {
+async function bundle_minify(cb = () => {}) {
+  const tmpdir = os.tmpdir();
+  await bundler({
+    infile: 'index.mjs',
+    outfile: `${tmpdir}/index.mjs`
+  });
 
-  gulp.src(['ai/*.mjs', 'ui/*.mjs', 'core/*.mjs', 'index.mjs'], { sourcemaps: true })
-    .pipe(rollup({
-      input: 'index.mjs',
-      output: {
-        format: 'es'
-      }
-    }))
+
+  gulp.src(`${tmpdir}/index.mjs`, { sourcemaps: true })
     .pipe(terser())
     .pipe(minify())
     .pipe(rename('index.mjs'))
     .pipe(gulp.dest('./dist/'));
 
-  gulp.src(['ai/*.mjs', 'core/*.mjs'])
-    .pipe(rollup({
-      input: 'ai/engineWorker.mjs',
-      output: {
-        format: 'es'
-      }
-    }))
+  await bundler({
+    infile: 'ai/engineWorker.mjs',
+    outfile: `${tmpdir}/engineWorker.mjs`
+  });
+
+  gulp.src(`${tmpdir}/engineWorker.mjs`, { sourcemaps: true })
     .pipe(terser())
     .pipe(minify())
     .pipe(rename('engineWorker.mjs'))
     .pipe(gulp.dest('./dist/ai/'));
 
   cb();
-};
+}
 
 function resources(cb = () => {}) {
   let gaHtml = '';
@@ -55,7 +58,7 @@ function resources(cb = () => {}) {
     .pipe(gulp.dest('./dist/ui/'));
 
   cb();
-};
+}
 
 exports.resources = resources;
 exports.bundle_minify = bundle_minify;

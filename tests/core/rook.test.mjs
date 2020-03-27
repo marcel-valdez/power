@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {Rook} from '../../core/rook.mjs';
 import {King} from '../../core/king.mjs';
 import {Side, MoveType, PieceType} from '../../core/power.common.mjs';
@@ -77,7 +79,7 @@ addTest(
     // given
     const target = new Rook({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => false
+      isWithinBoundaries: () => false
     };
     // when
     const moveType = target.computeMoveType(board, 1, 1);
@@ -92,8 +94,8 @@ addTest(
     // given
     const target = new Rook({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     VALID_MOVES.forEach(([x, y]) => {
       // when
@@ -106,12 +108,12 @@ addTest(
 
 addTest(
   'Can identify invalid diagonal moves',
-    () => {
+  () => {
     // given
     const target = new Rook({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     [
       [0, 0],
@@ -144,8 +146,8 @@ addTest(
     // given
     const target = new Rook({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x, y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     // when
     // then
@@ -173,13 +175,13 @@ addTest(
     const target = new Rook({position: [3,3]});
     const dst = { x: null, y: null };
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => dst['x'] === x && dst['y'] === y,
-      getPieceAt: (x, y) => new Rook()
+      isWithinBoundaries: () => true,
+      containsPieceAt: (x,y) => dst.x === x && dst.y === y,
+      getPieceAt: () => new Rook()
     };
     VALID_MOVES.forEach(([x,y]) => {
-      dst['x'] = x;
-      dst['y'] = y;
+      dst.x = x;
+      dst.y = y;
       // when
       const moveType = target.computeMoveType(board, x, y);
       // then
@@ -194,13 +196,13 @@ addTest(
     const target = new Rook({position: [3,3]});
     const dst = { x: null, y: null };
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => dst['x'] === x && dst['y'] === y,
-      getPieceAt: (x, y) => new King()
+      isWithinBoundaries: () => true,
+      containsPieceAt: (x,y) => dst.x === x && dst.y === y,
+      getPieceAt: () => new King()
     };
     VALID_MOVES.forEach(([x,y]) => {
-      dst['x'] = x;
-      dst['y'] = y;
+      dst.x = x;
+      dst.y = y;
       // when
       const moveType = target.computeMoveType(board, x, y);
       // then
@@ -210,18 +212,18 @@ addTest(
 
 addTest(
   'Can attack enemies',
-    () => {
+  () => {
     // given
     const target = new Rook({position: [3,3]});
     const dst = { x: null, y: null };
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => dst['x'] === x && dst['y'] === y,
-      getPieceAt: (x, y) => new Rook({ side: Side.BLACK })
+      isWithinBoundaries: () => true,
+      containsPieceAt: (x,y) => dst.x === x && dst.y === y,
+      getPieceAt: () => new Rook({ side: Side.BLACK })
     };
     VALID_MOVES.forEach(([x,y]) => {
-      dst['x'] = x;
-      dst['y'] = y;
+      dst.x = x;
+      dst.y = y;
       // when
       const moveType = target.computeMoveType(board, x, y);
       // then
@@ -236,12 +238,12 @@ addTest(
     const dst = { y: null, x: null };
     const target = new Rook({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => !(x == dst['x'] && y == dst['y'])
+      isWithinBoundaries: () => true,
+      containsPieceAt: (x,y) => !(x == dst.x && y == dst.y)
     };
     TWO_SQUARE_MOVES.forEach(([x, y]) => {
-      dst['x'] = x;
-      dst['y'] = y;
+      dst.x = x;
+      dst.y = y;
       assert.equals(
         // when
         target.computeMoveType(board, x, y),
@@ -258,9 +260,9 @@ addTest(
     // given
     const target = new Rook({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Rook({side: Side.BLACK})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Rook({side: Side.BLACK})
     };
     TWO_SQUARE_MOVES.forEach(([x, y]) => {
       assert.equals(
@@ -279,9 +281,9 @@ addTest(
     // given
     const target = new Rook({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Rook({side: Side.WHITE})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Rook({side: Side.WHITE})
     };
     TWO_SQUARE_MOVES.forEach(([x, y]) => {
       assert.equals(

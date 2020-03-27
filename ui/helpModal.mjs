@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {html, Component} from '../ui/renderer.mjs';
 
 export class HelpButton extends Component {

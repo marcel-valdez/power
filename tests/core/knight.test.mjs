@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {Knight} from '../../core/knight.mjs';
 import {King} from '../../core/king.mjs';
 import {Side, MoveType, PieceType} from '../../core/power.common.mjs';
@@ -73,7 +75,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => false
+      isWithinBoundaries: () => false
     };
     // when
     const moveType = target.computeMoveType(board, 1, 1);
@@ -88,7 +90,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true
+      isWithinBoundaries: () => true
     };
     // when
     const moveType = target.computeMoveType(board, 6, 3);
@@ -103,7 +105,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true
+      isWithinBoundaries: () => true
     };
     // when
     const moveType = target.computeMoveType(board, 3, 6);
@@ -118,7 +120,7 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true
+      isWithinBoundaries: () => true
     };
     // when
     // then
@@ -145,13 +147,13 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => false
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => false
     };
     // when
     ONE_SQUARE_MOVES.forEach(([x, y]) => assert.equals(
       target.computeMoveType(board, 3, 4),
-    // then
+      // then
       MoveType.MOVE,
       `Move from (3,3) to (${x}, ${y})`
     ));
@@ -164,8 +166,8 @@ addTest(
     // given
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true
     };
     // when
     const moveType = target.computeMoveType(board, 3, 4);
@@ -183,7 +185,7 @@ addTest(
     };
     const target = new Knight({position: [3,3]});
     const board = {
-      isWithinBoundaries: (x,y) => true,
+      isWithinBoundaries: () => true,
       containsPieceAt: (x,y) => {
         utils.debug(`containsPieceAt(${x},${y})`);
         const result = x !== state.square[0] || y !== state.square[1];
@@ -209,9 +211,9 @@ addTest(
     // given
     const target = new Knight({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Knight({side: Side.BLACK})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Knight({side: Side.BLACK})
     };
     // when
     // then
@@ -230,9 +232,9 @@ addTest(
     // given
     const target = new Knight({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new Knight({side: Side.WHITE})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new Knight({side: Side.WHITE})
     };
     // when
     // then
@@ -251,9 +253,9 @@ addTest(
     // given
     const target = new Knight({position: [3,3], side: Side.WHITE});
     const board = {
-      isWithinBoundaries: (x,y) => true,
-      containsPieceAt: (x,y) => true,
-      getPieceAt: (x,y) => new King({side: Side.WHITE})
+      isWithinBoundaries: () => true,
+      containsPieceAt: () => true,
+      getPieceAt: () => new King({side: Side.WHITE})
     };
     // when
     // then

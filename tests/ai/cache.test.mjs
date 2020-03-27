@@ -1,5 +1,8 @@
+// jshint esversion: 6
+
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {Cache} from '../../ai/cache.mjs';
+
 
 addTest('Can cache a single value', () => {
   // given

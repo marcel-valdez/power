@@ -1,3 +1,5 @@
+// jshint esversion: 8
+
 import utils from '../core/utils.mjs';
 
 const isBrowser = typeof document !== 'undefined';
@@ -92,7 +94,7 @@ const addTest = (title, testFn) => {
   deferredTests.resolve(tests);
 };
 
-const reportResult = (title = '', result, error = '') => {
+const reportResult = (title, result, error = '') => {
   if (error) {
     utils.log(`${title}: ${result}\n${error.stack}`);
     write(
@@ -127,7 +129,6 @@ function processResults(
 
   const { pass_count, fail_count } = results;
   const total_count = pass_count + fail_count;
-  let resultMsg = `PASSED: ${pass_count}/${total_count}`;
   utils.info(`PASSED: ${pass_count}/${total_count}`);
   write(`<font color="seagreen">PASSED</font>: ${pass_count}/${total_count}<br/>`,
     elementId);
@@ -234,8 +235,8 @@ const compareArray = (actual, expected, message = '') => {
   return true;
 };
 
-const isObject = (maybeObj) => !Array.isArray(maybeObj)
-      && typeof(maybeObj) === 'object';
+const isObject = (maybeObj) => !Array.isArray(maybeObj) &&
+  typeof(maybeObj) === 'object';
 
 const compareObject = (actual, expected, message = '') => {
   if (!isObject(actual)) {
@@ -377,8 +378,6 @@ const assert = {
       throw new AssertionError(
         assert.makeErrorMsg(actual, expected, title, 'is not equal to'));
     }
-
-    return true;
   },
   notEquals: (actual, expected, title) => {
     if (actual !== expected) {
@@ -443,7 +442,7 @@ const assert = {
   }
 };
 
-docReady(_ => runTests());
+docReady(() => runTests());
 
 export {
   docReady,

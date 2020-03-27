@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {html, render} from './ui/renderer.mjs';
 import {BoardUi} from './ui/board.mjs';
 import utils from './core/utils.mjs';

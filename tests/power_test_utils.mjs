@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 import {Rook} from '../core/rook.mjs';
 import {King} from '../core/king.mjs';
 import {Knight} from '../core/knight.mjs';
