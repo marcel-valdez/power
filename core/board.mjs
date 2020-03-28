@@ -1,3 +1,4 @@
+// jshint esversion: 7
 
 import {Knight} from '../core/knight.mjs';
 import {
@@ -213,42 +214,27 @@ function Board(state = DEFAULT_BOARD_STATE) {
     get() { return _state.gameStatus; }
   });
 
-  this.copy = (copyState = null) => {
-    if (copyState === null) {
-      return this;
+  this.getRow = (rowIdx) => {
+    if (rowIdx < 0 || rowIdx > _state.squares.length) {
+      throw `Row indices can only be values 0-7. Got: ${rowIdx}.`;
     }
 
-    const newState = Object.assign({}, _state, copyState);
-    return new Board(newState);
+    return Object.freeze(_state.squares[rowIdx]);
   };
 
-  this.toJson = () => {
-    const squares = this.getRows().map(
-      row =>
-        row.map(cell => {
-          if (cell === null) {
-            return null;
-          } else {
-            return cell.toJson();
-          }
-        }));
+  this.getRows = () => Object.freeze(_state.squares);
 
-    const enPassant = _state.enPassant ? _state.enPassant.toJson() : null;
-    const promotion = _state.promotion ? _state.promotion.toJson() : null;
+  this.getPieceAt = (x,y) => _state.squares[y][x];
 
-    return {
-      squares,
-      enPassant,
-      promotion,
-      gameStatus: _state.gameStatus
-    };
-  };
+  this.containsPieceAt = (x, y) => this.getPieceAt(x, y) !== null;
+
+  this.isWithinBoundaries = (x, y) => x >= 0 && y >= 0 &&
+    _state.squares.length > y && _state.squares[0].length > x;
 
   const doMove = (src, dst) => {
     const { squares, enPassant } = movePiece(_state.squares, src, dst);
     return this.copy({ squares, enPassant });
   };
-
 
   const computeGameStatus = (outcome, attacker, defender) => {
     let gameStatus = this.gameStatus;
@@ -258,9 +244,8 @@ function Board(state = DEFAULT_BOARD_STATE) {
         GameStatus.WHITE_WON : GameStatus.BLACK_WON;
     }
 
-    if (
-      outcome.result === Winner.DEFENDER &&
-      attacker.type === PieceType.KING) {
+    if (outcome.result === Winner.DEFENDER &&
+        attacker.type === PieceType.KING) {
       gameStatus = outcome.winner.side === Side.BLACK ?
         GameStatus.BLACK_WON : GameStatus.WHITE_WON;
     }
@@ -312,7 +297,7 @@ function Board(state = DEFAULT_BOARD_STATE) {
     const [x1, y1] = src;
     const [x2, y2] = dst;
     const srcPiece = this.getPieceAt(x1, y1);
-    const { result, winner } = attack(srcPiece, this.enPassant);
+    const { result, winner } = attack(srcPiece, this.enPassant, predefinedOutcome);
     let squares = null;
     if (result === Winner.ATTACKER) {
       // move attacking pawn
@@ -345,7 +330,6 @@ function Board(state = DEFAULT_BOARD_STATE) {
   };
 
   const doPromotionAttack = (src, dst, predefinedOutcome = EngineOutcome.NONE) => {
-    const [x1, y1] = src;
     const [x2, y2] = dst;
     const atkBoard = doAttack(src, dst, predefinedOutcome);
     const winner = atkBoard.getPieceAt(x2, y2);
@@ -363,7 +347,7 @@ function Board(state = DEFAULT_BOARD_STATE) {
   };
 
   const doCastle = (src, dst) => {
-    const [x1, ] = src;
+    const [x1] = src;
     const [x2, y2] = dst;
     const {squares: origSquares} = _state;
     const rook = this.getPieceAt(x2, y2);
@@ -438,22 +422,36 @@ function Board(state = DEFAULT_BOARD_STATE) {
     });
   };
 
-  this.getRow = (rowIdx) => {
-    if (rowIdx < 0 || rowIdx > _state.squares.length) {
-      throw `Row indices can only be values 0-7. Got: ${rowIdx}.`;
+  this.copy = (copyState = null) => {
+    if (copyState === null) {
+      return this;
     }
 
-    return Object.freeze(_state.squares[rowIdx]);
+    const newState = Object.assign({}, _state, copyState);
+    return new Board(newState);
   };
 
-  this.getRows = () => Object.freeze(_state.squares);
+  this.toJson = () => {
+    const squares = this.getRows().map(
+      row =>
+        row.map(cell => {
+          if (cell === null) {
+            return null;
+          } else {
+            return cell.toJson();
+          }
+        }));
 
-  this.getPieceAt = (x,y) => _state.squares[y][x];
+    const enPassant = _state.enPassant ? _state.enPassant.toJson() : null;
+    const promotion = _state.promotion ? _state.promotion.toJson() : null;
 
-  this.containsPieceAt = (x, y) => this.getPieceAt(x, y) !== null;
-
-  this.isWithinBoundaries = (x, y) => x >= 0 && y >= 0 &&
-    _state.squares.length > y && _state.squares[0].length > x;
+    return {
+      squares,
+      enPassant,
+      promotion,
+      gameStatus: _state.gameStatus
+    };
+  };
 
   return this;
 }
@@ -479,8 +477,7 @@ const fromJsonCell = (cellState) => {
 
 Board.fromJson = ({ squares, enPassant, promotion, gameStatus }) => {
   const bSquares = squares.map(
-    (row) => row.map(
-      cell => fromJsonCell(cell)));
+    (row) => row.map(cell => fromJsonCell(cell)));
   const bEnPassant = fromJsonCell(enPassant);
   const bPromotion = fromJsonCell(promotion);
 
