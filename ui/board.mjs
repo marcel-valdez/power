@@ -169,7 +169,7 @@ export class BoardUi extends Component {
   }
 
   movePiece(targetPosition = []) {
-    const { board, selectedPos = null, src = null, side } = this.state;
+    const { board, selectedPos = null } = this.state;
     if (targetPosition[0] === selectedPos[0] &&
         targetPosition[1] === selectedPos[1]) {
       // They clicked the same square, let's unselect the piece.
