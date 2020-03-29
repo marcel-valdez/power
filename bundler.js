@@ -14,7 +14,7 @@ async function build({ infile, outfile }) {
     ]
   });
 
-  bundle.write({
+  return bundle.write({
     format: 'es',
     compact: true,
     output: {

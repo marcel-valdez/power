@@ -13,24 +13,22 @@ const replace = require('gulp-replace');
 
 function bundle_minify(cb = () => {}) {
   const tmpdir = os.tmpdir();
-  bundler({
+  return bundler({
     infile: 'index.mjs',
     outfile: `${tmpdir}/index.mjs`
-  }).then(() =>
-    gulp.src(`${tmpdir}/index.mjs`, { sourcemaps: true })
-      .pipe(terser())
-      .pipe(minify())
-      .pipe(rename('index.mjs'))
-      .pipe(gulp.dest('./dist/'))
+  }).then(() => gulp.src(`${tmpdir}/index.mjs`, { sourcemaps: true })
+    .pipe(terser())
+    .pipe(minify())
+    .pipe(rename('index.mjs'))
+    .pipe(gulp.dest('./dist/'))
   ).then(() => bundler({
     infile: 'ai/engineWorker.mjs',
     outfile: `${tmpdir}/engineWorker.mjs`
-  })).then(() =>
-    gulp.src(`${tmpdir}/engineWorker.mjs`, { sourcemaps: true })
-      .pipe(terser())
-      .pipe(minify())
-      .pipe(rename('engineWorker.mjs'))
-      .pipe(gulp.dest('./dist/ai/'))
+  })).then(() => gulp.src(`${tmpdir}/engineWorker.mjs`, { sourcemaps: true })
+    .pipe(terser())
+    .pipe(minify())
+    .pipe(rename('engineWorker.mjs'))
+    .pipe(gulp.dest('./dist/ai/'))
   ).then(() => cb());
 }
 
