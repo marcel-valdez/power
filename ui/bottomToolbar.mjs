@@ -14,14 +14,12 @@ export class BottomToolbar extends Component {
     toggleHelp = () => {},
   },
   { }) {
-    let component = html`
+    return html`
 <div class='btn-container'>
   <${ResetButton} onClick=${resetGame} />
+  <${ResignButton} onClick=${resignGame} />
   <${UndoButton} onClick=${undoLastMove} />
   <${HelpButton} onClick=${toggleHelp} />
-  <${ResignButton} onClick=${resignGame} />
 </div>`;
-
-    return component;
   }
 }
