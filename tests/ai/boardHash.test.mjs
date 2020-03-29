@@ -3,8 +3,7 @@
 import {addTest, assert} from '../../tests/test_framework.mjs';
 import {computeBoardHash} from '../../ai/boardHash.mjs';
 import {
-  blkPawn, blkKnight, blkRook, whtPawn, whtKnight, whtKing, whtRook,
-  blkKing
+  blkPawn, blkKnight, blkRook, whtPawn, whtKing
 } from '../../tests/power_test_utils.mjs';
 import {Board} from '../../core/board.mjs';
 
@@ -51,7 +50,6 @@ addTest('computeBoardHash: 1 knight', () => {
   // then
   assert.equals(hash, 5n);
 });
-
 
 addTest('computeBoardHash: 1 king', () => {
   // given
