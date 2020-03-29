@@ -10,12 +10,11 @@ import {
 } from '../core/power.common.mjs';
 import {RowUi} from '../ui/row.mjs';
 import {PromotionUi} from '../ui/promotion.mjs';
-import {ResetButton} from '../ui/resetButton.mjs';
-import {UndoButton} from '../ui/undoButton.mjs';
 import {GameEndedModal} from '../ui/gameEndedModal.mjs';
 import {EngineThinkingModal} from '../ui/engineThinkingModal.mjs';
-import {HelpButton, HelpModal} from '../ui/helpModal.mjs';
+import {HelpModal} from '../ui/helpModal.mjs';
 import utils from '../core/utils.mjs';
+import {BottomToolbar} from './bottomToolbar.mjs';
 
 
 const DEFAULT_STATE = Object.freeze({
@@ -79,8 +78,10 @@ export class BoardUi extends Component {
 
   clickPiece(position = []) {
     const { selectedPos = null, board, side } = this.state;
-    if (board.pendingPromotion) {
-      // Can't move piece until the promotion piece is selected
+    if (board.pendingPromotion ||
+        board.gameStatus !== GameStatus.IN_PROGRESS) {
+      // Can't move piece until the promotion piece is selected or if the game
+      // ended.
       return;
     }
 
@@ -215,6 +216,14 @@ export class BoardUi extends Component {
     this.updateState({ showHelp: newShowHelp });
   }
 
+  resignGame() {
+    const { board } = this.state;
+    // TODO: We should use the player's color instead of hardcode
+    const newBoard = board.copy({ gameStatus: GameStatus.BLACK_WON });
+
+    this.updateState({ board: newBoard });
+  }
+
   render(
     { },
     {
@@ -275,11 +284,12 @@ export class BoardUi extends Component {
 <div class='board-container'>
   <table class='power-table'>${rows}</table>
 </div>
-<div class='btn-container'>
-  <${ResetButton} onClick=${() => this.resetState()} />
-  <${UndoButton} onClick=${() => this.popState()} />
-  <${HelpButton} onClick=${() => this.toggleHelpMessage()} />
-</div>`;
+<${BottomToolbar}
+    resetGame=${() => this.resetState()}
+    undoLastMove=${() => this.popState()}
+    resignGame=${() => this.resignGame()}
+    toggleHelp=${() => this.toggleHelpMessage()}
+/>`;
 
     if (this.state.showHelp === true) {
       boardUi = html`
