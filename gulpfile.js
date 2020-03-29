@@ -11,32 +11,27 @@ const rename = require('gulp-rename');
 const minifyCSS = require('gulp-csso');
 const replace = require('gulp-replace');
 
-async function bundle_minify(cb = () => {}) {
+function bundle_minify(cb = () => {}) {
   const tmpdir = os.tmpdir();
-  await bundler({
+  bundler({
     infile: 'index.mjs',
     outfile: `${tmpdir}/index.mjs`
-  });
-
-
-  gulp.src(`${tmpdir}/index.mjs`, { sourcemaps: true })
-    .pipe(terser())
-    .pipe(minify())
-    .pipe(rename('index.mjs'))
-    .pipe(gulp.dest('./dist/'));
-
-  await bundler({
+  }).then(() =>
+    gulp.src(`${tmpdir}/index.mjs`, { sourcemaps: true })
+      .pipe(terser())
+      .pipe(minify())
+      .pipe(rename('index.mjs'))
+      .pipe(gulp.dest('./dist/'))
+  ).then(() => bundler({
     infile: 'ai/engineWorker.mjs',
     outfile: `${tmpdir}/engineWorker.mjs`
-  });
-
-  gulp.src(`${tmpdir}/engineWorker.mjs`, { sourcemaps: true })
-    .pipe(terser())
-    .pipe(minify())
-    .pipe(rename('engineWorker.mjs'))
-    .pipe(gulp.dest('./dist/ai/'));
-
-  cb();
+  })).then(() =>
+    gulp.src(`${tmpdir}/engineWorker.mjs`, { sourcemaps: true })
+      .pipe(terser())
+      .pipe(minify())
+      .pipe(rename('engineWorker.mjs'))
+      .pipe(gulp.dest('./dist/ai/'))
+  ).then(() => cb());
 }
 
 function resources(cb = () => {}) {
