@@ -23,28 +23,39 @@ function run_all_tests {
 }
 
 function run_test {
-  test_file=$1
+  local test_file=$1
   print "Running test: ${test_file}"
   node "${test_file}"
   return $?
 }
 
 function get_test_file {
-  src_file=$1
-  filename=$(basename ${src_file})
-  dirpath=$(dirname ${src_file})
+  local src_file=$1
+  local filename=$(basename ${src_file})
+  local dirpath=$(dirname ${src_file})
 
-  test_dirpath=${dirpath/power/power\/tests/}
-  test_filename=${filename/\.mjs/.test.mjs}
+  local test_dirpath=${dirpath/power/power\/tests/}
+  local test_filename=${filename/\.mjs/.test.mjs}
   echo ${test_dirpath}/${test_filename}
 }
 
+function rebuild_app {
+  print "Rebuilding app"
+  npm run build &>/tmp/power-npm-run-build.log &
+}
+
 function main {
-  file=$1
+  local file=$1
+  local test_file=
   clear
   print "Regenerating TAGS file"
-  etags *.mjs
+  etags *.mjs &>/tmp/power-etags.log &
 
+
+  if ! [[ "${file}" =~ /test/ ]]; then
+    # regenerate app if changed file isn't a test file
+    rebuild_app
+  fi
 
   if [[ "${file}" =~ test\.mjs ]]; then
     run_test "${file}"
@@ -53,7 +64,10 @@ function main {
     if [[ -e "${test_file}" ]]; then
       run_test "${test_file}"
     else
-      run_all_tests
+      if ! [[ "${file}" =~ /ui/ ]]; then
+        # /ui/ files do not have tests
+        run_all_tests
+      fi
     fi
   fi
 
