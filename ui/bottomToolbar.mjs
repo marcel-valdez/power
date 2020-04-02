@@ -18,7 +18,6 @@ export class BottomToolbar extends Component {
 <div class='btn-container'>
   <${ResetButton} onClick=${resetGame} />
   <${ResignButton} onClick=${resignGame} />
-  <${UndoButton} onClick=${undoLastMove} />
   <${HelpButton} onClick=${toggleHelp} />
 </div>`;
   }
