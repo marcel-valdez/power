@@ -20,7 +20,7 @@ const logResults = (result, engine) => {
 const engine = new Engine({ maxDepth: 3, playingSide: Side.BLACK });
 onmessage = ({data: message}) => {
   const { board, side, engineMoveId } = message;
-  new Promise((resolve, reject) => {
+  new Promise((resolve) => {
     utils.enableLogging();
     utils.info('Computing my next move...');
     utils.disableLogging();
