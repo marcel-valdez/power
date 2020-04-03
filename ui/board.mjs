@@ -1,5 +1,7 @@
 // jshint esversion: 6
 
+import seedrandom from 'seedrandom';
+
 import {html, Component} from '../ui/renderer.mjs';
 import {Board, computePieceWinOdds} from '../core/board.mjs';
 import {
@@ -16,6 +18,7 @@ import {HelpModal} from '../ui/helpModal.mjs';
 import utils from '../core/utils.mjs';
 import {BottomToolbar} from './bottomToolbar.mjs';
 
+const RANDOM = seedrandom();
 
 const DEFAULT_STATE = Object.freeze({
   board: new Board(),
@@ -50,7 +53,7 @@ export class BoardUi extends Component {
 
   pushState(undoState) {
     const engineMoveId =
-          Math.floor(undoState.engineMoveId + 1000 + (Math.random() * 10000));
+          Math.floor(undoState.engineMoveId + 1000 + (RANDOM() * 10000));
     this.stateStack.push(Object.assign({}, undoState, { engineMoveId }));
   }
 

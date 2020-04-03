@@ -1,5 +1,7 @@
 // jshint esversion: 7
 
+import seedrandom from 'seedrandom';
+
 import {Knight} from '../core/knight.mjs';
 import {
   Winner,
@@ -13,11 +15,14 @@ import {Pawn} from '../core/pawn.mjs';
 import {King} from '../core/king.mjs';
 import utils from '../core/utils.mjs';
 
+
 export const EngineOutcome = {
   NONE: 'NONE',
   ALWAYS_WIN: 'ALWAYS_WIN',
   ALWAYS_LOSE: 'ALWAYS_LOSE'
 };
+
+const RANDOM = seedrandom();
 
 const STARTING_BOARD = Object.freeze([
   [
@@ -114,7 +119,7 @@ function computeWinOdds(attackPower, defendPower) {
 }
 
 function realizeOdds(winOdds) {
-  return Math.random() < winOdds;
+  return RANDOM() < winOdds;
 }
 
 function computeSacrificePower(ownerPower, sacrificePower) {
