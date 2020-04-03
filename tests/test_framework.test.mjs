@@ -56,3 +56,10 @@ addTest('Compares scalar values', () => {
       { x: (b) => b + 1, y: 2 }
     ));
 });
+
+addTest('Can test promises', () => {
+  return new Promise((resolve) => {
+    assert.equals(1, 1);
+    resolve(true);
+  });
+});

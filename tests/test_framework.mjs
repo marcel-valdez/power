@@ -108,11 +108,11 @@ const reportResult = (title, result, error = '') => {
 };
 
 function runTest(test = { testFn: () => {}, title: '' }) {
-  try {
-    test.testFn();
+  const onSuccess = () => {
     reportResult(test.title, 'PASS');
     return { passed: true, error: null };
-  } catch (error) {
+  };
+  const onFailure = (error) => {
     if (error instanceof AssertionError) {
       reportResult(test.title, 'FAIL', error);
     } else {
@@ -120,6 +120,13 @@ function runTest(test = { testFn: () => {}, title: '' }) {
     }
 
     return { pass: false, error };
+  };
+
+  try {
+    const outcome = test.testFn();
+    return Promise.resolve(outcome).then(onSuccess, onFailure);
+  } catch (error) {
+    return Promise.resolve(onFailure(error));
   }
 }
 
@@ -147,25 +154,34 @@ async function runTests(
   const tests = await getTests();
   utils.debug(`Tests available: ${tests.length}`);
   utils.log('Running tests.');
+  const testRuns = [];
   try {
     while (tests.length > 0) {
-      const result = runTest(tests.shift());
-      if (result.passed) { pass_count++; }
-      else { fail_count++; }
+      const testFn = tests.shift();
+      const testOutcome = runTest(testFn);
+      testRuns.push(
+        Promise.resolve(testOutcome)
+          .then((result) => result.passed ? pass_count++ : fail_count++)
+          .catch(() => fail_count++)
+      );
+
     }
   } finally {
-    deferredResults.resolve({ fail_count, pass_count });
-    render({
-      fail_count,
-      pass_count
-    });
-    if (!(typeof process === 'undefined')) {
-      if (fail_count > 0) {
-        process.exit(1);
-      } else {
-        process.exit(0);
+    Promise.allSettled(testRuns).then(() => {
+      deferredResults.resolve({ fail_count, pass_count });
+      render({
+        fail_count,
+        pass_count
+      });
+      // nodejs
+      if (typeof process !== 'undefined') {
+        if (fail_count > 0) {
+          process.exit(1);
+        } else {
+          process.exit(0);
+        }
       }
-    }
+    });
   }
 }
 
@@ -404,6 +420,21 @@ const assert = {
         assert.makeErrorMsg(actual, expected, title, 'is the same as'));
     }
   },
+  isNull: (actual, title) => {
+    if (actual === null || typeof(actual) === 'undefined') {
+      return true;
+    } else {
+      let strActual = actual + '';
+      if (typeof(actual) === 'object') {
+        strActual = toJSON(actual);
+      }
+      let msg = `value ${strActual} was not null or undefined, expected null or undefined.`;
+      if (title) {
+        msg = `${title}\n${msg}`;
+      }
+      throw new AssertionError(msg);
+    }
+  },
   notNull: (actual, title) => {
     if (actual !== null && actual !== undefined) {
       return true;
@@ -412,7 +443,7 @@ const assert = {
       if (title) {
         msg = `${title}\n${msg}`;
       }
-      throw msg;
+      throw new AssertionError(msg);
     }
   },
   deepEquals: (actual, expected, message = '') => {
