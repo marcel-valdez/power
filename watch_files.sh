@@ -9,12 +9,18 @@ function kill_previous {
 
 kill_previous
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/ui" "${DIR}/handle_watched_file.sh" __file__ &
+watchfile --recursive --regx '.*\.m?js$' --directory "${DIR}/ui" "${DIR}/handle_watched_file.sh" __file__ &
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/core" "${DIR}/handle_watched_file.sh" __file__ &
+watchfile --recursive --regx '.*\.m?js$' --directory "${DIR}/core" "${DIR}/handle_watched_file.sh" __file__ &
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/ai" "${DIR}/handle_watched_file.sh" __file__ &
+watchfile --recursive --regx '.*\.m?js$' --directory "${DIR}/ai" "${DIR}/handle_watched_file.sh" __file__ &
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/tests" "${DIR}/handle_watched_file.sh" __file__ &
+watchfile --recursive --regx '.*\.m?js$' --directory "${DIR}/tests" "${DIR}/handle_watched_file.sh" __file__ &
+
+watchfile --recursive --regx '.*\.m?js$' --directory "${DIR}/multiplayer" "${DIR}/handle_watched_file.sh" __file__ &
+
+watchfile --recursive --regx '.*\.m?js$' --directory "${DIR}/server" "${DIR}/handle_watched_file.sh" __file__ &
+
+watchfile --regx '.*\.m?js$' --directory "${DIR}/" "${DIR}/handle_watched_file.sh" __file__ &
 
 wait
