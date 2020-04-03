@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 let DEBUG = false;
 let INFO = true;
 let WARNING = true;

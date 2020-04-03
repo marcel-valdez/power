@@ -1,6 +1,8 @@
+// jshint esversion: 8
+
 import utils from '../core/utils.mjs';
 
-const DISABLED = false;
+let DISABLED = false;
 export const disable = () => {
   DISABLED = true;
 };
