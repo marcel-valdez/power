@@ -1,6 +1,6 @@
-// jshint esversion: 7
+// jshint esversion: 8
 
-import seedrandom from 'seedrandom';
+import random from '../core/random.mjs';
 
 import {Knight} from '../core/knight.mjs';
 import {
@@ -22,7 +22,7 @@ export const EngineOutcome = {
   ALWAYS_LOSE: 'ALWAYS_LOSE'
 };
 
-const RANDOM = seedrandom();
+const RNG = random();
 
 const STARTING_BOARD = Object.freeze([
   [
@@ -119,7 +119,7 @@ function computeWinOdds(attackPower, defendPower) {
 }
 
 function realizeOdds(winOdds) {
-  return RANDOM() < winOdds;
+  return RNG() < winOdds;
 }
 
 function computeSacrificePower(ownerPower, sacrificePower) {
