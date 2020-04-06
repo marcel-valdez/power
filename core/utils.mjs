@@ -82,14 +82,14 @@ const defer = () => {
   deferred.promise = new Promise((_resolve, _reject) => {
     deferred.resolve = (value) => {
       if (!deferred.isResolved && !deferred.isRejected) {
-        debug(`Deferred promise resolved with: ${value}`);
+        debug(`[utils.defer] Deferred promise resolved with: ${value}`);
         _resolve(value);
         deferred.isResolved = true;
       }
     };
     deferred.reject = (error) => {
       if (!deferred.isRejected && !deferred.isRejected) {
-        debug(`Deferred promise rejected with: ${error}`);
+        debug(`[utils.defer] Deferred promise rejected with: ${error}`);
         _reject(error);
         deferred.isRejected = true;
       }
