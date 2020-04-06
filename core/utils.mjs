@@ -63,7 +63,7 @@ function timeout(timeoutMs) {
   return new Promise(resolve => setTimeout(resolve, timeoutMs));
 }
 
-function resolveTimeout(promise, timeoutMs) {
+function resolveTimeout(promise, timeoutMs = 100) {
   return Promise.race([
     promise,
     timeout(timeoutMs).then(() => new TimeoutError(`Timeout after ${timeoutMs} ms`))
