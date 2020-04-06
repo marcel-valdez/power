@@ -428,6 +428,32 @@ const assert = {
       return assert.equals(actual, expected, message);
     }
   },
+  notDeepEquals: (actual, expected, message = '') => {
+    if (actual === expected) {
+      throw makeActualExpectedError(actual, expected,
+        `${message}\nExpected values to be different, but they\'re the same`);
+    }
+
+    if (Array.isArray(expected)) {
+      try {
+        compareArray(actual, expected, message);
+      } catch (e) {
+        return true;
+      }
+      throw makeActualExpectedError(actual, expected,
+        `${message}\nExpected arrays to be different, but they\'re equal.`);
+    } else if (typeof (expected) === 'object') {
+      try {
+        compareObject(actual, expected, message);
+      } catch (e) {
+        return true;
+      }
+      throw makeActualExpectedError(actual, expected,
+        `${message}\nExpected objects to be different, but they\'re equal`);
+    } else {
+      return assert.notEquals(actual, expected, message);
+    }
+  },
   throws: (fn, message = '') => {
     let error = null;
     try {
