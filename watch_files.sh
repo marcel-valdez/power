@@ -32,6 +32,7 @@ watch_directory "${DIR}/ai"
 watch_directory "${DIR}/tests"
 watch_directory "${DIR}/multiplayer"
 watch_directory "${DIR}/server"
+watch_directory "${DIR}/client"
 
 watchfile --regx '.*\.m?js$' --directory "${DIR}/" "${DIR}/handle_watched_file.sh" __file__ &
 
