@@ -9,6 +9,7 @@ import utils from '../../core/utils.mjs';
 import Matchmaker from '../../server/matchmaker.mjs';
 import MatchmakingService from '../../server/matchmakingService.mjs';
 import { addSetup, addTeardown, addTest, assert } from '../../tests/test_framework.mjs';
+import sequence from '../sequential.mjs';
 
 const { resolveTimeout, defer, timeout } = utils;
 
@@ -19,30 +20,11 @@ const context = {
   target: null
 };
 
-const mutexes = [
-  defer()
-];
-mutexes[0].resolve(true);
+const sequential = sequence();
 
-// Allows to execute tests one at a time.
-function exclusive(fn) {
-  const index = mutexes.length - 1;
-  mutexes.push(defer());
-  return async () => {
-    console.log('[exclusive] Waiting for turn');
-    await mutexes[index].promise;
-    let result;
-    try {
-      console.log('[exclusive] RUNNING');
-      result = await fn();
-    } finally {
-      console.log('[exclusive] Finishing turn');
-      mutexes[index + 1].resolve(true);
-    }
-    return result;
-  };
+function addSequentialTest(title, testFn) {
+  addTest(title, sequential(testFn));
 }
-
 
 addSetup(async () => {
   utils.debug('START: Server setup');
@@ -111,7 +93,7 @@ function makeEvents(size) {
 }
 
 
-addTest('Test a client can connect to the server', exclusive(async () => {
+addSequentialTest('Test a client can connect to the server', async () => {
   // given a client & server
   const client = createClient();
   try {
@@ -123,10 +105,10 @@ addTest('Test a client can connect to the server', exclusive(async () => {
   } finally {
     client.disconnect();
   }
-}));
+});
 
 
-addTest('Test two clients can find a match', exclusive(async () => {
+addSequentialTest('Test two clients can find a match', async () => {
   // given two clients are connected to the server
   const oppFoundEvent_1 = defer();
   const client_1 = createClient({
@@ -161,10 +143,10 @@ addTest('Test two clients can find a match', exclusive(async () => {
     client_1.disconnect();
     client_2.disconnect();
   }
-}));
+});
 
 
-addTest('Test two clients can find a match and issue a move', exclusive(async () => {
+addSequentialTest('Test two clients can find a match and issue a move', async () => {
   // given two clients connected
   const connectionEvents = makeEvents(2);
   const oppFoundEvents = makeEvents(2);
@@ -221,4 +203,4 @@ addTest('Test two clients can find a match and issue a move', exclusive(async ()
     client_1.disconnect();
     client_2.disconnect();
   }
-}));
+});

@@ -9,6 +9,7 @@ import { Side } from '../../core/power.common.mjs';
 import utils from '../../core/utils.mjs';
 import { ClientState, MessageType } from '../../multiplayer/common.mjs';
 import { addSetup, addTeardown, addTest, assert } from '../../tests/test_framework.mjs';
+import sequence from '../sequential.mjs';
 import FakeMatchmakingService from './fakeMatchmakingService.mjs';
 
 const { resolveTimeout, defer, timeout } = utils;
@@ -23,6 +24,11 @@ const context = {
   fake_server: null
 };
 
+const sequential = sequence();
+
+function addSequentialTest(title, testFn) {
+  addTest(title, sequential(testFn));
+}
 
 addSetup(async () => {
   utils.debug('START: Server setup');
@@ -63,7 +69,7 @@ addTeardown(async () => {
 });
 
 
-addTest('Test client can connect', async () => {
+addSequentialTest('Test client can connect', async () => {
   // given
   const target = new MatchmakingClient({
     serverUrl: `http://localhost:${context.port}`
@@ -82,7 +88,7 @@ addTest('Test client can connect', async () => {
   }
 });
 
-addTest('Test client can disconnect', async () => {
+addSequentialTest('Test client can disconnect', async () => {
   // given
   const target = new MatchmakingClient({
     serverUrl: `http://localhost:${context.port}`
@@ -102,7 +108,7 @@ addTest('Test client can disconnect', async () => {
 });
 
 
-addTest('Test client can findMatch', async () => {
+addSequentialTest('Test client can findMatch', async () => {
   // given
   const target = new MatchmakingClient({
     serverUrl: `http://localhost:${context.port}`
@@ -124,7 +130,7 @@ addTest('Test client can findMatch', async () => {
 });
 
 
-addTest('Test client can issue move', async () => {
+addSequentialTest('Test client can issue move', async () => {
   // given
   const target = new MatchmakingClient({
     serverUrl: `http://localhost:${context.port}`
@@ -145,7 +151,7 @@ addTest('Test client can issue move', async () => {
 });
 
 
-addTest('Test client can send answer: match started', async () => {
+addSequentialTest('Test client can send answer: match started', async () => {
   // given
   const event = defer();
   const inputMatch = { matchId: 123, opponentId: 456, playerSide: Side.WHITE };
@@ -168,7 +174,7 @@ addTest('Test client can send answer: match started', async () => {
 });
 
 
-addTest('Test client can send answer: board update', async () => {
+addSequentialTest('Test client can send answer: board update', async () => {
   // given
   const event = defer();
   const update = { board: 'test-value' };

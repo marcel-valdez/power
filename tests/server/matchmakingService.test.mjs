@@ -11,6 +11,7 @@ import { MessageType } from '../../multiplayer/common.mjs';
 import Matchmaker from '../../server/matchmaker.mjs';
 import MatchmakingService from '../../server/matchmakingService.mjs';
 import { addSetup, addTeardown, addTest, assert } from '../../tests/test_framework.mjs';
+import sequence from '../sequential.mjs';
 
 const { resolveTimeout, timeout, defer } = utils;
 
@@ -20,6 +21,13 @@ const context = {
   io_server: null,
   target: null
 };
+
+const sequential = sequence();
+
+function addSequentialTest(title, testFn) {
+  addTest(title, sequential(testFn));
+}
+
 
 addSetup(async () => {
   utils.debug('START: Server setup');
@@ -89,7 +97,7 @@ async function withClients(clients, fn) {
   }
 }
 
-addTest(
+addSequentialTest(
   'Test a player can connect to the service',
   async () => {
     // given
@@ -111,7 +119,7 @@ addTest(
   }
 );
 
-addTest(
+addSequentialTest(
   'Test a player is removed from queue upon disconnect',
   async () => {
     // given
@@ -142,7 +150,7 @@ addTest(
   }
 );
 
-addTest(
+addSequentialTest(
   'Test two players can be matched together',
   async () => {
     // given
@@ -174,7 +182,7 @@ addTest(
   });
 
 
-addTest(
+addSequentialTest(
   'Test two players can play together',
   async () => {
     // given
