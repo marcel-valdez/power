@@ -19,6 +19,7 @@ function watch_directory {
   watchfile --recursive --regx '.*\.m?js$'\
     --directory "${watched_dir}"\
     "${DIR}/handle_watched_file.sh __file__" &
+
   watcher_pids+=($!)
 }
 
