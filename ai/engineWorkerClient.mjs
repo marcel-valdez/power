@@ -6,7 +6,7 @@ import utils from '../core/utils.mjs';
 const RNG = random();
 
 async function debug(...args) {
-  console.log('[EngineWorkerClient]', ...args);
+  utils.debug('[EngineWorkerClient]', ...args);
 }
 
 async function log(...args) {
