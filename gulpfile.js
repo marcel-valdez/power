@@ -11,42 +11,43 @@ const rename = require('gulp-rename');
 const minifyCSS = require('gulp-csso');
 const replace = require('gulp-replace');
 
+function bundle({
+  filename,
+  src = '.',
+  dest = './dist'
+}) {
+  const tmpdir = os.tmpdir();
+  return bundler({
+    infile: `${src}/${filename}`,
+    outfile: `${tmpdir}/${filename}`
+  })
+    .then(() => gulp.src(`${tmpdir}/${filename}`, { sourcemaps: true })
+      .pipe(terser())
+      .pipe(minify())
+      .pipe(rename(filename))
+      .pipe(gulp.dest(dest)));
+}
+
 function bundle_minify(cb = () => { }) {
   const INDEX_FILE = 'index.mjs';
   const ENGINE_WORKER_FILE = 'engineWorker.mjs';
   const MATCHMAKING_WORKER_FILE = 'matchmakingWorker.mjs';
-  const tmpdir = os.tmpdir();
-  return bundler({
-    infile: INDEX_FILE,
-    outfile: `${tmpdir}/${INDEX_FILE}`
+  return bundle({
+    filename: INDEX_FILE,
+    src: '.',
+    dest: './dist'
   })
-    .then(() => gulp.src(`${tmpdir}/${INDEX_FILE}`, { sourcemaps: true })
-      .pipe(terser())
-      .pipe(minify())
-      .pipe(rename(INDEX_FILE))
-      .pipe(gulp.dest('./dist/'))
-    )
-    .then(() => bundler({
-      infile: `ai/${ENGINE_WORKER_FILE}`,
-      outfile: `${tmpdir}/${ENGINE_WORKER_FILE}`
-    }))
-    .then(() => gulp.src(`${tmpdir}/${ENGINE_WORKER_FILE}`, { sourcemaps: true })
-      .pipe(terser())
-      .pipe(minify())
-      .pipe(rename(ENGINE_WORKER_FILE))
-      .pipe(gulp.dest('./dist/ai/'))
-    )
-    .then(() => bundler({
-      infile: `client/${MATCHMAKING_WORKER_FILE}`,
-      outfile: `${tmpdir}/${MATCHMAKING_WORKER_FILE}`
-    }))
-    .then(() => gulp.src(`${tmpdir}/${MATCHMAKING_WORKER_FILE}`, { sourcemaps: true })
-      .pipe(terser())
-      .pipe(minify())
-      .pipe(rename(MATCHMAKING_WORKER_FILE))
-      .pipe(gulp.dest('./dist/client/'))
-    )
-    .then(() => cb());
+  .then(() => bundle({
+    filename: ENGINE_WORKER_FILE,
+    src: './ai',
+    dest: './dist/ai'
+  }))
+  .then(() => bundle({
+    filename: MATCHMAKING_WORKER_FILE,
+    src: './client',
+    dest: './dist/client'
+  }))
+  .then(() => cb());
 }
 
 function resources(cb = () => { }) {
