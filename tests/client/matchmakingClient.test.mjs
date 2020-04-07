@@ -79,7 +79,7 @@ addSequentialTest('Test client can connect', async () => {
     // when
     target.connect();
     // then
-    await timeout(20);
+    await timeout(40);
     const gotConnected = await context.fake_server.isConnected(target.socket.id);
     assert.equals(gotConnected, true);
     assert.equals(target.state, ClientState.CONNECTED);
@@ -95,14 +95,14 @@ addSequentialTest('Test client can disconnect', async () => {
   });
   target.connect();
   await timeout(20);
-  const isConnected = await context.fake_server.isConnected(target.socket.id);
+  const socketId = target.socket.id;
+  const isConnected = await context.fake_server.isConnected(socketId);
   assert.equals(isConnected, true);
   assert.equals(target.state, ClientState.CONNECTED);
-  const isDisconnectedPromise = context.fake_server.isDisconnected(target.socket.id);
   // when
   target.disconnect();
   // then
-  const gotDisconnected = await isDisconnectedPromise;
+  const gotDisconnected = await context.fake_server.isDisconnected(socketId);
   assert.equals(gotDisconnected, true);
   assert.equals(target.state, ClientState.DISCONNECTED);
 });
