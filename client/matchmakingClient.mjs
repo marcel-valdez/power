@@ -8,19 +8,19 @@ import { ClientState, MessageType } from '../multiplayer/common.mjs';
 const { isNullOrUndefined } = utils;
 
 async function debug(...args) {
-  await utils.debug('[MatchmakingClient]', ...args);
+  utils.debug('[MatchmakingClient]', ...args);
 }
 
 async function warn(...args) {
-  await utils.warn('[MatchmakingClient]', ...args);
+  utils.warn('[MatchmakingClient]', ...args);
 }
 
 async function error(...args) {
-  await utils.error('[MatchmakingClient]', ...args);
+  utils.error('[MatchmakingClient]', ...args);
 }
 
 async function log(...args) {
-  await utils.log('[MatchmakingClient]', ...args);
+  utils.log('[MatchmakingClient]', ...args);
 }
 
 const IO_CONFIG = {

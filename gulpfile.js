@@ -11,28 +11,45 @@ const rename = require('gulp-rename');
 const minifyCSS = require('gulp-csso');
 const replace = require('gulp-replace');
 
-function bundle_minify(cb = () => {}) {
+function bundle_minify(cb = () => { }) {
+  const INDEX_FILE = 'index.mjs';
+  const ENGINE_WORKER_FILE = 'engineWorker.mjs';
+  const MATCHMAKING_WORKER_FILE = 'matchmakingWorker.mjs';
   const tmpdir = os.tmpdir();
   return bundler({
-    infile: 'index.mjs',
-    outfile: `${tmpdir}/index.mjs`
-  }).then(() => gulp.src(`${tmpdir}/index.mjs`, { sourcemaps: true })
-    .pipe(terser())
-    .pipe(minify())
-    .pipe(rename('index.mjs'))
-    .pipe(gulp.dest('./dist/'))
-  ).then(() => bundler({
-    infile: 'ai/engineWorker.mjs',
-    outfile: `${tmpdir}/engineWorker.mjs`
-  })).then(() => gulp.src(`${tmpdir}/engineWorker.mjs`, { sourcemaps: true })
-    .pipe(terser())
-    .pipe(minify())
-    .pipe(rename('engineWorker.mjs'))
-    .pipe(gulp.dest('./dist/ai/'))
-  ).then(() => cb());
+    infile: INDEX_FILE,
+    outfile: `${tmpdir}/${INDEX_FILE}`
+  })
+    .then(() => gulp.src(`${tmpdir}/${INDEX_FILE}`, { sourcemaps: true })
+      .pipe(terser())
+      .pipe(minify())
+      .pipe(rename(INDEX_FILE))
+      .pipe(gulp.dest('./dist/'))
+    )
+    .then(() => bundler({
+      infile: `ai/${ENGINE_WORKER_FILE}`,
+      outfile: `${tmpdir}/${ENGINE_WORKER_FILE}`
+    }))
+    .then(() => gulp.src(`${tmpdir}/${ENGINE_WORKER_FILE}`, { sourcemaps: true })
+      .pipe(terser())
+      .pipe(minify())
+      .pipe(rename(ENGINE_WORKER_FILE))
+      .pipe(gulp.dest('./dist/ai/'))
+    )
+    .then(() => bundler({
+      infile: `client/${MATCHMAKING_WORKER_FILE}`,
+      outfile: `${tmpdir}/${MATCHMAKING_WORKER_FILE}`
+    }))
+    .then(() => gulp.src(`${tmpdir}/${MATCHMAKING_WORKER_FILE}`, { sourcemaps: true })
+      .pipe(terser())
+      .pipe(minify())
+      .pipe(rename(MATCHMAKING_WORKER_FILE))
+      .pipe(gulp.dest('./dist/client/'))
+    )
+    .then(() => cb());
 }
 
-function resources(cb = () => {}) {
+function resources(cb = () => { }) {
   let gaHtml = '';
   if (process.env.NODE_ENV === 'production') {
     gaHtml = fs.readFileSync('./prod/google_analytics.html');

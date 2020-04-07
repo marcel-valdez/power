@@ -30,7 +30,9 @@ export const ClientAction = {
  * These are the enums used to communicate between the web page
  * and the client worker.
  */
-export const ClientAnswer = {
+export const ClientEvent = {
+  CONNECTED: 'client.connected',
+  DISCONNECTED: 'client.connected',
   MATCH_STARTED: 'client.found_match',
   BOARD_UPDATED: 'client.board_update'
 };
