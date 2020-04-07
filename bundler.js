@@ -4,13 +4,16 @@
 
 const rollup = require('rollup');
 const resolve = require('@rollup/plugin-node-resolve');
+const commonjs = require('@rollup/plugin-commonjs');
+
 
 
 async function build({ infile, outfile }) {
   const bundle = await rollup.rollup({
     input: infile,
     plugins: [
-      resolve()
+      resolve(),
+      commonjs()
     ]
   });
 
