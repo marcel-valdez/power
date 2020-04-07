@@ -41,19 +41,13 @@ addTeardown(
 );
 
 addTest('Tests should run after setup is finished', () => {
-  // given
-  // when
-  const actual = context.setupValue;
   // then
-  assert.equals(actual, expected.setupValue);
+  assert.equals(context.setupValue, expected.setupValue);
 });
 
 addTest('Tests should run after ALL setups execute', () => {
-  // given
-  // when
-  const actual = context.setupValue_2;
   // then
-  assert.equals(actual, expected.setupValue_2);
+  assert.equals(context.setupValue_2, expected.setupValue_2);
 });
 
 addTest('Tests should run before teardown', () => {

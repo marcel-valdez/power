@@ -1,7 +1,8 @@
 // jshint esversion: 8
 
-import { ClientAction } from '../multiplayer/common.mjs';
 import utils from '../core/utils.mjs';
+import { ClientAction } from '../multiplayer/common.mjs';
+
 
 async function debug(...args) {
   await utils.debug('[MatchmakingWorkerClient]', ...args);

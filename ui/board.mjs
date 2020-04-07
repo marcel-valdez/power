@@ -16,7 +16,7 @@ import { EngineThinkingModal } from '../ui/engineThinkingModal.mjs';
 import { HelpModal } from '../ui/helpModal.mjs';
 import utils from '../core/utils.mjs';
 import { BottomToolbar } from './bottomToolbar.mjs';
-import WorkerClient from '../client/matchmakingWorkerClient.mjs';
+import MultiplayerClient from '../client/matchmakingWorkerClient.mjs';
 import EngineClient from '../ai/engineWorkerClient.mjs';
 
 
@@ -32,7 +32,7 @@ const DEFAULT_STATE = Object.freeze({
 });
 
 
-const matchMakingWorker = WorkerClient({
+const multiplayerClient = MultiplayerClient({
   onConnected: () => {
     console.log('onConnected');
   },
@@ -43,6 +43,9 @@ const matchMakingWorker = WorkerClient({
     console.log('onMatchStarted');
   },
   onBoardUpdate: () => {
+    // For promotions without attack, sacrifices and position movements
+    // We should update locally and then when we receive the state from
+    // the server we simply update, but rendering should look exactly the same.
     console.log('onBoardUpdate');
   }
 });
@@ -104,7 +107,7 @@ export class BoardUi extends Component {
     this.stateStack.push(Object.assign({}, undoState));
   }
 
-  popState() {
+  undoLastMove() {
     if (this.stateStack.length === 1) {
       utils.log('No more moves to undo.');
       return;
@@ -135,7 +138,7 @@ export class BoardUi extends Component {
     }
 
     if (this.currentSide === this.opponentSide) {
-      // Can't move the AI's pieces
+      // Can't move the opponent's pieces
       return;
     }
 
@@ -155,6 +158,43 @@ export class BoardUi extends Component {
         this.updateState({ selectedPos });
       } // else wrong piece color clicked
     } // else the user clicked on an empty square
+  }
+
+  movePiece(targetPosition = []) {
+    if (targetPosition[0] === this.selectedPos[0] &&
+      targetPosition[1] === this.selectedPos[1]) {
+      // They clicked the same square, let's unselect the piece.
+      this.updateState({ selectedPos: null });
+      return;
+    }
+
+    const newBoard = this.board.makeMove(this.selectedPos, targetPosition);
+    if (newBoard === this.board) {
+      // the board did not change, this means the destination move
+      // is invalid, do nothing.
+      return;
+    }
+
+    // [pvp] TODO: Instead of this, send the move through the client
+    //             unless there is a pending promotion, then we do it
+    //             locally and once the promotion has been selected,
+    //             we issue the move to the server.
+    const newState = {
+      board: newBoard,
+      selectedPos: null,
+      src: this.selectedPos,
+      dst: targetPosition,
+      currentSide: this.getNextSide()
+    };
+
+    this.pushState(Object.assign({}, this.state, {
+      selectedPos: null
+    }));
+    this.updateState(newState);
+    if (newBoard.gameStatus === GameStatus.IN_PROGRESS &&
+      !newBoard.pendingPromotion) {
+      this.opponentMove(newBoard, this.opponentSide);
+    }
   }
 
   onEngineMove(move) {
@@ -193,43 +233,6 @@ export class BoardUi extends Component {
     // [pvp] TODO: Select engine or matchmaking client depending
     //             on current state.
     this.engineClient.makeMove(board, side);
-  }
-
-  movePiece(targetPosition = []) {
-    if (targetPosition[0] === this.selectedPos[0] &&
-      targetPosition[1] === this.selectedPos[1]) {
-      // They clicked the same square, let's unselect the piece.
-      this.updateState({ selectedPos: null });
-      return;
-    }
-
-    const newBoard = this.board.makeMove(this.selectedPos, targetPosition);
-    if (newBoard === this.board) {
-      // the board did not change, this means the destination move
-      // is invalid, do nothing.
-      return;
-    }
-
-    // [pvp] TODO: Instead of this, send the move through the client
-    //             unless there is a pending promotion, then we do it
-    //             locally and once the promotion has been selected,
-    //             we issue the move to the server.
-    const newState = {
-      board: newBoard,
-      selectedPos: null,
-      src: this.selectedPos,
-      dst: targetPosition,
-      currentSide: this.getNextSide()
-    };
-
-    this.pushState(Object.assign({}, this.state, {
-      selectedPos: null
-    }));
-    this.updateState(newState);
-    if (newBoard.gameStatus === GameStatus.IN_PROGRESS &&
-      !newBoard.pendingPromotion) {
-      this.opponentMove(newBoard, this.opponentSide);
-    }
   }
 
   setPromotion(type = PieceType.ROOK) {
@@ -313,13 +316,16 @@ export class BoardUi extends Component {
           markedSrc=${src}
           markedDst=${dst} />`);
 
+          // [pvp] TODO: The undo button should be disabled or the
+          // undoLastMove method should do nothing when playing against
+          // another person.
     let boardUi = html`
 <div class='board-container'>
   <table class='power-table'>${rows}</table>
 </div>
 <${BottomToolbar}
     resetGame=${() => this.resetState()}
-    undoLastMove=${() => this.popState()}
+    undoLastMove=${() => this.undoLastMove()}
     resignGame=${() => this.resignGame()}
     toggleHelp=${() => this.toggleHelpMessage()}
 />`;

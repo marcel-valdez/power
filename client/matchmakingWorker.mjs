@@ -5,11 +5,10 @@
  * web page performance.
  */
 
-import utils from '../core/utils.mjs';
-
-import MatchmakingClient from './matchmakingClient.mjs';
-import { ClientEvent, ClientAction } from '../multiplayer/common.mjs';
 import { checkNotNullOrUndefined } from '../core/preconditions.mjs';
+import utils from '../core/utils.mjs';
+import { ClientAction, ClientEvent } from '../multiplayer/common.mjs';
+import MatchmakingClient from './matchmakingClient.mjs';
 
 
 async function debug(...args) {
