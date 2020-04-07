@@ -25,8 +25,8 @@ const DEFAULT_STATE = Object.freeze({
   selectedPos: null,
   src: null,
   dst: null,
-  side: Side.WHITE,
   showHelp: false,
+  currentSide: Side.WHITE,
   playerSide: Side.WHITE,
   opponentSide: Side.BLACK
 });
@@ -71,7 +71,7 @@ export class BoardUi extends Component {
   }
 
   get currentSide() {
-    return this.state.side;
+    return this.state.currentSide;
   }
 
   get src() {
@@ -101,7 +101,6 @@ export class BoardUi extends Component {
   }
 
   pushState(undoState) {
-    this.engineClient.ignoreIncomingMove();
     this.stateStack.push(Object.assign({}, undoState));
   }
 
@@ -115,10 +114,11 @@ export class BoardUi extends Component {
     // if it is the engine's turn, fire it up
     if (oldState.board.gameStatus === GameStatus.IN_PROGRESS &&
       !oldState.board.pendingPromotion &&
-      oldState.side === this.opponentSide) {
+      oldState.currentSide === this.opponentSide) {
       oldState = this.stateStack.pop();
     }
 
+    this.engineClient.ignoreIncomingMove();
     this.setState(oldState);
   }
 
@@ -157,14 +157,13 @@ export class BoardUi extends Component {
     } // else the user clicked on an empty square
   }
 
-  // TODO: This should be handled by an 'engineWorkerClient'
   onEngineMove(move) {
-    this.onOpponentMove(this.genAiMoveBoard(move), move);
+    this.onOpponentMove(this.genEngineMoveBoard(move), move);
   }
 
   // TODO: Receive a board from the engineClient, instead of
   //       source and destination.
-  genAiMoveBoard({ src, dst }) {
+  genEngineMoveBoard({ src, dst }) {
     const newBoard = this.board.makeMove(src, dst);
     if (newBoard.pendingPromotion) {
       // TODO: Don't assume AI wants a rook.
@@ -174,6 +173,11 @@ export class BoardUi extends Component {
     return newBoard;
   }
 
+  /**
+   * Method to handle an opponent's move, regardless of source (AI or Multiplayer).
+   * @param newBoard The new board to render for the user.
+   * @param move The move the opponent did. { [x1, y1], [x2, y2] }
+   */
   onOpponentMove(newBoard, { src, dst }) {
     this.pushState(this.state);
     this.updateState({
@@ -181,7 +185,7 @@ export class BoardUi extends Component {
       selectedPos: null,
       src: src,
       dst: dst,
-      side: this.playerSide
+      currentSide: this.playerSide
     });
   }
 
@@ -215,7 +219,7 @@ export class BoardUi extends Component {
       selectedPos: null,
       src: this.selectedPos,
       dst: targetPosition,
-      side: this.getNextSide()
+      currentSide: this.getNextSide()
     };
 
     this.pushState(Object.assign({}, this.state, {
