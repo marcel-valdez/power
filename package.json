@@ -57,7 +57,7 @@
     "socket.io": "^2.4.0"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "htm": "^3.0.3",
     "preact": "^10.3.4",
     "yargs": "^15.3.1"
