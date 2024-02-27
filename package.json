@@ -54,7 +54,7 @@
     "gulp-terser-js": "^5.1.2",
     "markdown-to-html": "0.0.13",
     "rollup": "^2.2.0",
-    "socket.io": "^2.4.0"
+    "socket.io": "^2.5.0"
   },
   "dependencies": {
     "express": "^4.17.3",
