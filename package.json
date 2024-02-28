@@ -12,8 +12,8 @@
     "start-dev": "./web-server.sh --start --port 8000",
     "start": "./web-server.sh --start --type dist --port ${PORT}",
     "stop": "./web-server.sh --stop",
-    "markdown": "$(npm bin)/markdown README.md --flavor gfm --context marcel-valdez/power > ./dist/rules.html",
-    "build": "$(npm bin)/gulp && npm run markdown",
+    "markdown": "npm exec markdown README.md --flavor gfm --context marcel-valdez/power > ./dist/rules.html",
+    "build": "npm exec gulp && npm run markdown",
     "build-start": "npm run build && npm run start"
   },
   "repository": {
