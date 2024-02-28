@@ -11,7 +11,7 @@ class AssertionError extends Error {
 }
 
 const write = (msg, elementId = null) => {
-  if(!isBrowser) return;
+  if (!isBrowser) return;
   let element = null;
   if (elementId === null) {
     element = document.querySelector('body');
@@ -27,14 +27,14 @@ function docReady(fn) {
   // see if DOM is already available
   if (isBrowser) {
     if (document.readyState === 'complete' ||
-        document.readyState === 'interactive') {
+      document.readyState === 'interactive') {
       // call on next available tick
-      setTimeout(fn, 1);
+      setTimeout(() => Promise.resolve(fn), 1);
     } else {
-      document.addEventListener('DOMContentLoaded', fn);
+      document.addEventListener('DOMContentLoaded', () => Promise.resolve(fn));
     }
   } else {
-    setTimeout(fn, 1);
+    setTimeout(() => Promise.resolve(fn()), 1);
   }
 }
 
@@ -45,41 +45,12 @@ const setTestEntriesElementId = (id) => {
 
 const tests = [];
 
-function defer() {
-  const deferred = {
-    promise: null,
-    resolve: null,
-    isResolved: false,
-    reject: null,
-    isRejected: false
-  };
-
-  deferred.promise = new Promise((_resolve, _reject) => {
-    deferred.resolve = (value) => {
-      if (!deferred.isResolved && !deferred.isRejected) {
-        utils.debug(`Deferred promise resolved with: ${value}`);
-        _resolve(value);
-        deferred.isResolved = true;
-      }
-    };
-    deferred.reject = (error) => {
-      if (!deferred.isRejected && !deferred.isRejected) {
-        utils.debug(`Deferred promise rejected with: ${error}`);
-        _reject(error);
-        deferred.isRejected = true;
-      }
-    };
-  });
-
-  return deferred;
-}
-
-const deferredTests = defer();
+const deferredTests = utils.defer();
 async function getTests() {
   return await deferredTests.promise;
 }
 
-const deferredResults = defer();
+const deferredResults = utils.defer();
 async function getResults() {
   return await deferredResults.promise;
 }
@@ -107,12 +78,12 @@ const reportResult = (title, result, error = '') => {
   }
 };
 
-function runTest(test = { testFn: () => {}, title: '' }) {
-  try {
-    test.testFn();
+function runTest(test = { testFn: () => { }, title: '' }) {
+  const onSuccess = () => {
     reportResult(test.title, 'PASS');
     return { passed: true, error: null };
-  } catch (error) {
+  };
+  const onFailure = (error) => {
     if (error instanceof AssertionError) {
       reportResult(test.title, 'FAIL', error);
     } else {
@@ -120,6 +91,15 @@ function runTest(test = { testFn: () => {}, title: '' }) {
     }
 
     return { pass: false, error };
+  };
+
+  try {
+    const outcome = test.testFn();
+    return Promise.resolve(outcome)
+      .then(onSuccess, onFailure)
+      .catch(onFailure);
+  } catch (error) {
+    return Promise.resolve(onFailure(error));
   }
 }
 
@@ -140,32 +120,35 @@ function processResults(
 }
 
 async function runTests(
-  render = ({fail_count, pass_count}) => processResults({ fail_count, pass_count })) {
+  render = ({ fail_count, pass_count }) => processResults({ fail_count, pass_count })) {
   let pass_count = 0;
   let fail_count = 0;
   utils.debug('Waiting for tests...');
   const tests = await getTests();
   utils.debug(`Tests available: ${tests.length}`);
   utils.log('Running tests.');
+  const testRuns = [];
   try {
     while (tests.length > 0) {
-      const result = runTest(tests.shift());
-      if (result.passed) { pass_count++; }
-      else { fail_count++; }
+      const testFn = tests.shift();
+      const testOutcome = runTest(testFn);
+      testRuns.push(
+        Promise.resolve(testOutcome)
+          .then((result) => result.passed ? pass_count++ : fail_count++)
+          .catch(() => fail_count++)
+      );
+
     }
   } finally {
-    deferredResults.resolve({ fail_count, pass_count });
-    render({
-      fail_count,
-      pass_count
+    return await Promise.allSettled(testRuns).then(() => {
+      deferredResults.resolve({ fail_count, pass_count });
+      render({
+        fail_count,
+        pass_count
+      });
+      // nodejs
+      return fail_count === 0;
     });
-    if (!(typeof process === 'undefined')) {
-      if (fail_count > 0) {
-        process.exit(1);
-      } else {
-        process.exit(0);
-      }
-    }
   }
 }
 
@@ -174,7 +157,7 @@ const toJSON = (value) => {
     return 'null';
   }
 
-  if (typeof(value) === 'undefined') {
+  if (typeof (value) === 'undefined') {
     return 'undefined';
   }
 
@@ -188,12 +171,12 @@ const makeActualExpectedError = (actual, expected, message) => {
 
 const makeActualExpectedMsg = (actual, expected) => {
   let actualJson = 'undefined';
-  if (typeof(actual) !== 'undefined') {
+  if (typeof (actual) !== 'undefined') {
     actualJson = JSON.stringify(actual);
   }
 
   let expectedJson = 'undefined';
-  if (typeof(expected) !== 'undefined') {
+  if (typeof (expected) !== 'undefined') {
     expectedJson = JSON.stringify(expected);
   }
   return `Actual: ${actualJson}\nExpected: ${expectedJson}`;
@@ -203,16 +186,16 @@ const compareArray = (actual, expected, message = '') => {
   if (!Array.isArray(actual)) {
     throw new AssertionError(
       `${message}` +
-        `\nExpected an array but got ${typeof(actual)}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nExpected an array but got ${typeof (actual)}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   if (actual.length !== expected.length) {
     throw new AssertionError(
       `${message}` +
-        `\nExpected an array of length: ${expected.length}, ` +
-        `but got an array of length ${actual.length}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nExpected an array of length: ${expected.length}, ` +
+      `but got an array of length ${actual.length}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   const nonMatches = [...Array(expected.length).keys()].map((index) => {
@@ -227,7 +210,7 @@ const compareArray = (actual, expected, message = '') => {
   }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = '[\n' + nonMatches.map(({message}) => message)
+    const errors = '[\n' + nonMatches.map(({ message }) => message)
       .join('\n') + '\n]';
     throw makeActualExpectedError(actual, expected, errors);
   }
@@ -236,13 +219,13 @@ const compareArray = (actual, expected, message = '') => {
 };
 
 const isObject = (maybeObj) => !Array.isArray(maybeObj) &&
-  typeof(maybeObj) === 'object';
+  typeof (maybeObj) === 'object';
 
 const compareObject = (actual, expected, message = '') => {
   if (!isObject(actual)) {
     throw new AssertionError(`${message}` +
-                             `\nExpected an object but found: ${actual}` +
-                             `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nExpected an object but found: ${actual}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   return compareObjectKeys(actual, expected, message) &&
@@ -262,34 +245,34 @@ const compareObjectProperties = (actual, expected, message = '') => {
     throw new AssertionError(
       `${message}\n` +
       'Some properties not found in the expected object.' +
-        `\nUnmatched properties: ${unmatchedActualProps}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nUnmatched properties: ${unmatchedActualProps}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   if (unmatchedExpectedProps.length > 0) {
     throw new AssertionError(
       `${message}\n` +
       'Some expected properties not found in the actual object.' +
-        `\nMissing properties: ${unmatchedExpectedProps}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nMissing properties: ${unmatchedExpectedProps}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   const nonMatches = actualProps
-    .filter((key) => typeof(actual[key]) !== 'function' ||
-                typeof(expected[key]) !== 'function')
-    .map((propName) =>  {
+    .filter((key) => typeof (actual[key]) !== 'function' ||
+      typeof (expected[key]) !== 'function')
+    .map((propName) => {
       try {
         return assert.deepEquals(
           actual[propName],
           expected[propName],
           `${message}\n at property: ${propName}`);
-      } catch(error) {
+      } catch (error) {
         return error;
       }
     }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = nonMatches.map(({message}) => message)
+    const errors = nonMatches.map(({ message }) => message)
       .join('\n');
     const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
     throw new AssertionError(message);
@@ -311,35 +294,35 @@ const compareObjectKeys = (actual, expected, message = '') => {
     throw new AssertionError(
       `${message}\n` +
       'Some keys not found in the expected object.' +
-        `\nUnmatched keys: ${unmatchedActualKeys}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nUnmatched keys: ${unmatchedActualKeys}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   if (unmatchedExpectedKeys.length > 0) {
     throw new AssertionError(
       `${message}\n` +
       'Some expected keys not found in the actual object.' +
-        `\nMissing keys: ${unmatchedExpectedKeys}` +
-        `\n${makeActualExpectedMsg(actual, expected)}`);
+      `\nMissing keys: ${unmatchedExpectedKeys}` +
+      `\n${makeActualExpectedMsg(actual, expected)}`);
   }
 
   const nonMatches = actualKeys
-    .filter((key) => typeof(actual[key]) !== 'function' ||
-                typeof(expected[key]) !== 'function')
-    .map((key) =>  {
+    .filter((key) => typeof (actual[key]) !== 'function' ||
+      typeof (expected[key]) !== 'function')
+    .map((key) => {
       try {
         return assert.deepEquals(
           actual[key],
           expected[key],
           `${message}\n at key: ${key}`);
-      } catch(error) {
+      } catch (error) {
         utils.debug(error.stack);
         return error;
       }
     }).filter((outcome) => outcome !== true);
 
   if (nonMatches.length > 0) {
-    const errors = nonMatches.map(({message}) => message)
+    const errors = nonMatches.map(({ message }) => message)
       .join('\n');
     const message = `${errors}\n${makeActualExpectedMsg(actual, expected)}`;
     throw new AssertionError(message);
@@ -350,12 +333,12 @@ const compareObjectKeys = (actual, expected, message = '') => {
 
 function compareNullOrUndefined(actual, expected, message) {
   if ((actual === null || expected === null) &&
-      (actual !== null || expected !== null)) {
+    (actual !== null || expected !== null)) {
     throw makeActualExpectedError(actual, expected, message);
   }
 
-  if ((typeof(actual) === 'undefined' || typeof(expected) === 'undefined') &&
-      (typeof(actual) !== 'undefined' || typeof(expected) !== 'undefined')) {
+  if ((typeof (actual) === 'undefined' || typeof (expected) === 'undefined') &&
+    (typeof (actual) !== 'undefined' || typeof (expected) !== 'undefined')) {
     throw makeActualExpectedError(actual, expected, message);
   }
 
@@ -404,6 +387,21 @@ const assert = {
         assert.makeErrorMsg(actual, expected, title, 'is the same as'));
     }
   },
+  isNull: (actual, title) => {
+    if (actual === null || typeof (actual) === 'undefined') {
+      return true;
+    } else {
+      let strActual = actual + '';
+      if (typeof (actual) === 'object') {
+        strActual = toJSON(actual);
+      }
+      let msg = `value ${strActual} was not null or undefined, expected null or undefined.`;
+      if (title) {
+        msg = `${title}\n${msg}`;
+      }
+      throw new AssertionError(msg);
+    }
+  },
   notNull: (actual, title) => {
     if (actual !== null && actual !== undefined) {
       return true;
@@ -412,7 +410,7 @@ const assert = {
       if (title) {
         msg = `${title}\n${msg}`;
       }
-      throw msg;
+      throw new AssertionError(msg);
     }
   },
   deepEquals: (actual, expected, message = '') => {
@@ -424,17 +422,43 @@ const assert = {
 
     if (Array.isArray(expected)) {
       return compareArray(actual, expected, message);
-    } else if (typeof(expected) === 'object') {
+    } else if (typeof (expected) === 'object') {
       return compareObject(actual, expected, message);
     } else {
       return assert.equals(actual, expected, message);
+    }
+  },
+  notDeepEquals: (actual, expected, message = '') => {
+    if (actual === expected) {
+      throw makeActualExpectedError(actual, expected,
+        `${message}\nExpected values to be different, but they\'re the same`);
+    }
+
+    if (Array.isArray(expected)) {
+      try {
+        compareArray(actual, expected, message);
+      } catch (e) {
+        return true;
+      }
+      throw makeActualExpectedError(actual, expected,
+        `${message}\nExpected arrays to be different, but they\'re equal.`);
+    } else if (typeof (expected) === 'object') {
+      try {
+        compareObject(actual, expected, message);
+      } catch (e) {
+        return true;
+      }
+      throw makeActualExpectedError(actual, expected,
+        `${message}\nExpected objects to be different, but they\'re equal`);
+    } else {
+      return assert.notEquals(actual, expected, message);
     }
   },
   throws: (fn, message = '') => {
     let error = null;
     try {
       fn();
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
 
@@ -442,13 +466,68 @@ const assert = {
   }
 };
 
-docReady(() => runTests());
+
+async function runAsync(fns) {
+  const results = await Promise.allSettled(fns.map(async fn => await fn()));
+  const failures = results.filter(r => r.status === 'rejected');
+  if (failures.length > 0) {
+    const errorMessage = failures.map(r => r.reason).reduce((a, b) => `${a}\n${b}`);
+    throw Error(errorMessage);
+  }
+
+  return true;
+}
+
+const setupFns = [];
+function addSetup(setupFn) {
+  setupFns.push(setupFn);
+}
+
+async function runSetup() {
+  return runAsync(setupFns);
+}
+
+const teardownFns = [];
+function addTeardown(teardownFn) {
+  teardownFns.push(teardownFn);
+}
+
+function runTeardown() {
+  return runAsync(teardownFns);
+}
+
+docReady(async () => {
+  let passed = false;
+  try {
+    utils.debug('START: runSetup');
+    await runSetup();
+    utils.debug('END: runSetup');
+    try {
+      passed = await runTests();
+    } finally {
+      utils.debug('START: runTeardown');
+      await runTeardown();
+      utils.debug('END: runTeardown');
+    }
+  } catch (e) {
+    passed = false;
+    utils.error(e);
+    utils.error('An error occurred while executing setup or teardown.');
+  }
+
+  if (typeof process !== 'undefined') {
+    process.exit(passed ? 0 : 1);
+  }
+});
+
 
 export {
-  docReady,
   addTest,
-  runTests,
+  addSetup,
+  addTeardown,
   assert,
-  setTestEntriesElementId,
+  docReady,
   getResults,
+  runTests,
+  setTestEntriesElementId,
 };

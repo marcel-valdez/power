@@ -8,12 +8,12 @@
   },
   "scripts": {
     "watch": "./watch_files.sh",
-    "test": "./handle_watched_file.sh run_all_tests.mjs",
+    "test": "./handle_watched_file.sh /tests/all.mjs",
     "start-dev": "./web-server.sh --start --port 8000",
     "start": "./web-server.sh --start --type dist --port ${PORT}",
     "stop": "./web-server.sh --stop",
-    "markdown": "$(npm bin)/markdown README.md --flavor gfm --context marcel-valdez/power > ./dist/rules.html",
-    "build": "$(npm bin)/gulp && npm run markdown",
+    "markdown": "npm exec markdown README.md --flavor gfm --context marcel-valdez/power > ./dist/rules.html",
+    "build": "npm exec gulp && npm run markdown",
     "build-start": "npm run build && npm run start"
   },
   "repository": {
@@ -38,7 +38,10 @@
     "@babel/core": "^7.8.7",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/preset-env": "^7.8.7",
+    "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
+    "@rollup/pluginutils": "^3.0.8",
+    "get-port": "^5.1.1",
     "gulp": "^4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-concat": "^2.6.1",
@@ -51,10 +54,10 @@
     "gulp-terser-js": "^5.1.2",
     "markdown-to-html": "0.0.13",
     "rollup": "^2.2.0",
-    "@rollup/pluginutils": "^3.0.8"
+    "socket.io": "^2.5.0"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "htm": "^3.0.3",
     "preact": "^10.3.4",
     "yargs": "^15.3.1"

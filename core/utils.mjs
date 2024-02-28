@@ -1,3 +1,13 @@
+// jshint esversion: 6
+
+class TimeoutError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'TimeoutError';
+    this.message = message;
+  }
+}
+
 let DEBUG = false;
 let INFO = true;
 let WARNING = true;
@@ -42,11 +52,51 @@ const warn = (...msg) => WARNING && log('WARN: ', ...msg);
 const error = (...msg) => ERROR && log('ERROR: ', ...msg);
 
 const isNotNullOrUndefined = (obj) => {
-  return obj !== null && typeof(obj) !== 'undefined';
+  return obj !== null && obj !== undefined;
 };
 
 const isNullOrUndefined = (obj) => {
   return !isNotNullOrUndefined(obj);
+};
+
+function timeout(timeoutMs) {
+  return new Promise(resolve => setTimeout(resolve, timeoutMs));
+}
+
+function resolveTimeout(promise, timeoutMs = 100) {
+  return Promise.race([
+    promise,
+    timeout(timeoutMs).then(() => new TimeoutError(`Timeout after ${timeoutMs} ms`))
+  ]);
+}
+
+const defer = () => {
+  const deferred = {
+    promise: null,
+    resolve: null,
+    isResolved: false,
+    reject: null,
+    isRejected: false
+  };
+
+  deferred.promise = new Promise((_resolve, _reject) => {
+    deferred.resolve = (value) => {
+      if (!deferred.isResolved && !deferred.isRejected) {
+        debug(`[utils.defer] Deferred promise resolved with: ${value}`);
+        _resolve(value);
+        deferred.isResolved = true;
+      }
+    };
+    deferred.reject = (error) => {
+      if (!deferred.isRejected && !deferred.isRejected) {
+        debug(`[utils.defer] Deferred promise rejected with: ${error}`);
+        _reject(error);
+        deferred.isRejected = true;
+      }
+    };
+  });
+
+  return deferred;
 };
 
 export default {
@@ -63,5 +113,8 @@ export default {
   error,
   log,
   isNullOrUndefined,
-  isNotNullOrUndefined
+  isNotNullOrUndefined,
+  timeout,
+  defer,
+  resolveTimeout
 };

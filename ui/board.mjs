@@ -1,20 +1,23 @@
 // jshint esversion: 6
 
-import {html, Component} from '../ui/renderer.mjs';
-import {Board, computePieceWinOdds} from '../core/board.mjs';
+
+import { html, Component } from '../ui/renderer.mjs';
+import { Board, computePieceWinOdds } from '../core/board.mjs';
 import {
   GameStatus,
   MoveType,
   PieceType,
   Side
 } from '../core/power.common.mjs';
-import {RowUi} from '../ui/row.mjs';
-import {PromotionUi} from '../ui/promotion.mjs';
-import {GameEndedModal} from '../ui/gameEndedModal.mjs';
-import {EngineThinkingModal} from '../ui/engineThinkingModal.mjs';
-import {HelpModal} from '../ui/helpModal.mjs';
+import { RowUi } from '../ui/row.mjs';
+import { PromotionUi } from '../ui/promotion.mjs';
+import { GameEndedModal } from '../ui/gameEndedModal.mjs';
+import { EngineThinkingModal } from '../ui/engineThinkingModal.mjs';
+import { HelpModal } from '../ui/helpModal.mjs';
 import utils from '../core/utils.mjs';
-import {BottomToolbar} from './bottomToolbar.mjs';
+import { BottomToolbar } from './bottomToolbar.mjs';
+import MultiplayerClient from '../client/matchmakingWorkerClient.mjs';
+import EngineClient from '../ai/engineWorkerClient.mjs';
 
 
 const DEFAULT_STATE = Object.freeze({
@@ -22,20 +25,72 @@ const DEFAULT_STATE = Object.freeze({
   selectedPos: null,
   src: null,
   dst: null,
-  side: Side.WHITE,
-  engineMoveId: 0,
-  showHelp: false
+  showHelp: false,
+  currentSide: Side.WHITE,
+  playerSide: Side.WHITE,
+  opponentSide: Side.BLACK
 });
 
-const ENGINE_SIDE = Side.BLACK;
-const HUMAN_SIDE = Side.WHITE;
-const engineWorker = new Worker('ai/engineWorker.mjs', { type: 'module' });
+
+const multiplayerClient = MultiplayerClient({
+  onConnected: () => {
+    console.log('onConnected');
+  },
+  onDisconnected: () => {
+    console.log('onDisconnected');
+  },
+  onMatchStarted: () => {
+    console.log('onMatchStarted');
+  },
+  onBoardUpdate: () => {
+    // For promotions without attack, sacrifices and position movements
+    // We should update locally and then when we receive the state from
+    // the server we simply update, but rendering should look exactly the same.
+    console.log('onBoardUpdate');
+  }
+});
+
 
 export class BoardUi extends Component {
   constructor() {
     super();
     this.state = Object.assign({}, DEFAULT_STATE);
     this.stateStack = [DEFAULT_STATE];
+    this.engineClient = EngineClient({
+      onEngineMove: (...data) => this.onEngineMove(...data)
+    });
+  }
+
+  get playerSide() {
+    return this.state.playerSide;
+  }
+
+  get opponentSide() {
+    return this.state.opponentSide;
+  }
+
+  get showHelp() {
+    return this.state.showHelp;
+  }
+
+  get currentSide() {
+    return this.state.currentSide;
+  }
+
+  get src() {
+    return this.state.src;
+  }
+
+  get dst() {
+    return this.state.dst;
+  }
+
+  get board() {
+    return this.state.board;
+  }
+
+  get selectedPos() {
+    return this.state.selectedPos;
   }
 
   updateState(update) {
@@ -49,12 +104,10 @@ export class BoardUi extends Component {
   }
 
   pushState(undoState) {
-    const engineMoveId =
-          Math.floor(undoState.engineMoveId + 1000 + (Math.random() * 10000));
-    this.stateStack.push(Object.assign({}, undoState, { engineMoveId }));
+    this.stateStack.push(Object.assign({}, undoState));
   }
 
-  popState() {
+  undoLastMove() {
     if (this.stateStack.length === 1) {
       utils.log('No more moves to undo.');
       return;
@@ -63,34 +116,33 @@ export class BoardUi extends Component {
     let oldState = this.stateStack.pop();
     // if it is the engine's turn, fire it up
     if (oldState.board.gameStatus === GameStatus.IN_PROGRESS &&
-        !oldState.board.pendingPromotion &&
-        oldState.side === ENGINE_SIDE) {
+      !oldState.board.pendingPromotion &&
+      oldState.currentSide === this.opponentSide) {
       oldState = this.stateStack.pop();
     }
 
+    this.engineClient.ignoreIncomingMove();
     this.setState(oldState);
   }
 
   getNextSide() {
-    const {side} = this.state;
-    return side === Side.WHITE ? Side.BLACK : Side.WHITE;
+    return this.currentSide === Side.WHITE ? Side.BLACK : Side.WHITE;
   }
 
   clickPiece(position = []) {
-    const { selectedPos = null, board, side } = this.state;
-    if (board.pendingPromotion ||
-        board.gameStatus !== GameStatus.IN_PROGRESS) {
+    if (this.board.pendingPromotion ||
+      this.board.gameStatus !== GameStatus.IN_PROGRESS) {
       // Can't move piece until the promotion piece is selected or if the game
       // ended.
       return;
     }
 
-    if (side === ENGINE_SIDE) {
-      // Can't move the AI's pieces
+    if (this.currentSide === this.opponentSide) {
+      // Can't move the opponent's pieces
       return;
     }
 
-    if (selectedPos === null) {
+    if (this.selectedPos === null) {
       this.markSelectedPiece(position);
     } else {
       this.movePiece(position);
@@ -99,98 +151,40 @@ export class BoardUi extends Component {
 
   markSelectedPiece(selectedPos = []) {
     const [x, y] = selectedPos;
-    const {board, side} = this.state;
 
-    if (board.containsPieceAt(x, y)) {
-      const selPiece = board.getPieceAt(x, y);
-      if (selPiece.side === side) {
+    if (this.board.containsPieceAt(x, y)) {
+      const selPiece = this.board.getPieceAt(x, y);
+      if (selPiece.side === this.currentSide) {
         this.updateState({ selectedPos });
       } // else wrong piece color clicked
     } // else the user clicked on an empty square
   }
 
-  genEngineMoveHandler(id, reject, resolve) {
-    const engineMoveHandler = ({data: action}) => {
-      if (id !== action.engineMoveId) {
-        // the event was not meant for this moveHandler, due to player undo.
-        return;
-      }
-
-      if (action.engineMoveId !== this.state.engineMoveId) {
-        const msg =
-              `Ignored AI's move with id: ${action.engineMoveId}, ` +
-              `because we expected id: ${this.state.engineMoveId}`;
-        reject(msg);
-      } else {
-        resolve(action);
-      }
-
-      engineWorker.removeEventListener('message', engineMoveHandler);
-    };
-
-    return engineMoveHandler;
-  }
-
-  genAiMoveBoard({ src, dst }) {
-    const aiMoveBoard = this.state.board.makeMove(src, dst);
-    if (aiMoveBoard.pendingPromotion) {
-      // TODO: Don't assume AI wants a rook.
-      return aiMoveBoard.setPromotion(PieceType.ROOK);
-    }
-
-    return aiMoveBoard;
-  }
-
-  pushAiState(aiBoard, {src, dst}) {
-    this.pushState(this.state);
-    this.updateState({
-      board: aiBoard,
-      selectedPos: null,
-      src: src,
-      dst: dst,
-      side: HUMAN_SIDE,
-      engineMoveId: this.state.engineMoveId + 1
-    });
-  }
-
-  engineMove(board) {
-    new Promise((resolve, reject) => {
-      const id = this.state.engineMoveId;
-      engineWorker.postMessage({
-        board: board.toJson(),
-        side: ENGINE_SIDE,
-        engineMoveId: id
-      });
-      engineWorker.addEventListener(
-        'message',
-        this.genEngineMoveHandler(id, reject, resolve));
-    })
-      .then((action) => this.pushAiState(this.genAiMoveBoard(action), action))
-      .catch(console.log);
-  }
-
   movePiece(targetPosition = []) {
-    const { board, selectedPos = null } = this.state;
-    if (targetPosition[0] === selectedPos[0] &&
-        targetPosition[1] === selectedPos[1]) {
+    if (targetPosition[0] === this.selectedPos[0] &&
+      targetPosition[1] === this.selectedPos[1]) {
       // They clicked the same square, let's unselect the piece.
       this.updateState({ selectedPos: null });
       return;
     }
 
-    const newBoard = board.makeMove(selectedPos, targetPosition);
-    if (newBoard === board) {
+    const newBoard = this.board.makeMove(this.selectedPos, targetPosition);
+    if (newBoard === this.board) {
       // the board did not change, this means the destination move
       // is invalid, do nothing.
       return;
     }
 
+    // [pvp] TODO: Instead of this, send the move through the client
+    //             unless there is a pending promotion, then we do it
+    //             locally and once the promotion has been selected,
+    //             we issue the move to the server.
     const newState = {
       board: newBoard,
       selectedPos: null,
-      src: selectedPos,
+      src: this.selectedPos,
       dst: targetPosition,
-      side: this.getNextSide()
+      currentSide: this.getNextSide()
     };
 
     this.pushState(Object.assign({}, this.state, {
@@ -198,29 +192,68 @@ export class BoardUi extends Component {
     }));
     this.updateState(newState);
     if (newBoard.gameStatus === GameStatus.IN_PROGRESS &&
-        !newBoard.pendingPromotion) {
-      this.engineMove(newBoard);
+      !newBoard.pendingPromotion) {
+      this.opponentMove(newBoard, this.opponentSide);
     }
   }
 
+  onEngineMove(move) {
+    this.onOpponentMove(this.genEngineMoveBoard(move), move);
+  }
+
+  // TODO: Receive a board from the engineClient, instead of
+  //       source and destination.
+  genEngineMoveBoard({ src, dst }) {
+    const newBoard = this.board.makeMove(src, dst);
+    if (newBoard.pendingPromotion) {
+      // TODO: Don't assume AI wants a rook.
+      return newBoard.setPromotion(PieceType.ROOK);
+    }
+
+    return newBoard;
+  }
+
+  /**
+   * Method to handle an opponent's move, regardless of source (AI or Multiplayer).
+   * @param newBoard The new board to render for the user.
+   * @param move The move the opponent did. { [x1, y1], [x2, y2] }
+   */
+  onOpponentMove(newBoard, { src, dst }) {
+    this.pushState(this.state);
+    this.updateState({
+      board: newBoard,
+      selectedPos: null,
+      src: src,
+      dst: dst,
+      currentSide: this.playerSide
+    });
+  }
+
+  opponentMove(board = this.board, side = this.opponentSide) {
+    // [pvp] TODO: Select engine or matchmaking client depending
+    //             on current state.
+    this.engineClient.makeMove(board, side);
+  }
+
   setPromotion(type = PieceType.ROOK) {
-    const { board } = this.state;
-    const promotedBoard = board.setPromotion(type);
+    const promotedBoard = this.board.setPromotion(type);
+    // [pvp] TODO: If we're in PvP mode, we should send the
+    // promotion decision and wait for an update.
     this.updateState({ board: promotedBoard });
-    this.engineMove(promotedBoard);
+    this.opponentMove(promotedBoard, this.opponentSide);
   }
 
   toggleHelpMessage() {
-    const { showHelp } = this.state;
-    const newShowHelp = !showHelp;
-    this.updateState({ showHelp: newShowHelp });
+    this.updateState({ showHelp: !this.showHelp });
   }
 
   resignGame() {
-    const { board } = this.state;
-    // TODO: We should use the player's color instead of hardcode
-    const newBoard = board.copy({ gameStatus: GameStatus.BLACK_WON });
+    const winner = this.opponentSide == Side.WHITE ?
+      GameStatus.WHITE_WON : GameStatus.BLACK_WON;
 
+    const newBoard = this.board.copy({ gameStatus: winner });
+    // [pvp] TODO: If we're in PvP mode, we should send a signal
+    // and update the board only if we get a board update back
     this.updateState({ board: newBoard });
   }
 
@@ -231,10 +264,13 @@ export class BoardUi extends Component {
       selectedPos = [],
       src = [],
       dst = [],
-      side = Side.WHITE
+      currentSide = Side.WHITE,
+      showHelp = false,
+      playerSide = Side.WHITE,
+      opponentSide = Side.BLACK
     }) {
 
-    const isValidMovePositionFn = (x2,y2) => {
+    const isValidMovePositionFn = (x2, y2) => {
       if (selectedPos === null) {
         return false;
       }
@@ -249,7 +285,7 @@ export class BoardUi extends Component {
         return 0.0;
       }
 
-      if (!isValidMovePositionFn(x2,y2)) {
+      if (!isValidMovePositionFn(x2, y2)) {
         return 0.0;
       }
 
@@ -280,18 +316,21 @@ export class BoardUi extends Component {
           markedSrc=${src}
           markedDst=${dst} />`);
 
+          // [pvp] TODO: The undo button should be disabled or the
+          // undoLastMove method should do nothing when playing against
+          // another person.
     let boardUi = html`
 <div class='board-container'>
   <table class='power-table'>${rows}</table>
 </div>
 <${BottomToolbar}
     resetGame=${() => this.resetState()}
-    undoLastMove=${() => this.popState()}
+    undoLastMove=${() => this.undoLastMove()}
     resignGame=${() => this.resignGame()}
     toggleHelp=${() => this.toggleHelpMessage()}
 />`;
 
-    if (this.state.showHelp === true) {
+    if (showHelp === true) {
       boardUi = html`
 ${boardUi}
 <${HelpModal} onClick${() => this.toggleHelpMessage()}/>
@@ -306,7 +345,9 @@ ${boardUi}
   side=${this.getNextSide()}
   onClick=${(type) => this.setPromotion(type)}
 />`;
-    } else if (side === ENGINE_SIDE) {
+    } else if (currentSide === opponentSide) {
+      // [pvp] TODO: Rename the modal to WaitForMoveModal and parameterize
+      //             the message displayed to the user based on the playing mode.
       boardUi = html`
 ${boardUi}
 <${EngineThinkingModal} />

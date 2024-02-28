@@ -1,26 +1,78 @@
-// jshint esversion: 6
+// jshint esversion: 8
 
 import utils from '../core/utils.mjs';
-import {addTest, assert} from '../tests/test_framework.mjs';
+import { addSetup, addTeardown, addTest, assert } from '../tests/test_framework.mjs';
+
+const context = {
+  setupValue: null,
+  setupValue_2: null,
+  teardownValue: null
+};
+
+const expected = {
+  setupValue: "setupValue should be set before tests run",
+  setupValue_2: "setupValue_2 should be set before tests run",
+  teardownValue: "teardownValue should be set by a test and available for teardown"
+};
+
+addSetup(
+  async () => {
+    // given
+    await utils.timeout(10);
+    // when
+    context.setupValue = expected.setupValue;
+  }
+);
+
+addSetup(
+  async () => {
+    // given
+    await utils.timeout(10);
+    // when
+    context.setupValue_2 = expected.setupValue_2;
+  }
+);
+
+addTeardown(
+  async () => {
+    // then
+    assert.equals(context.teardownValue, expected.teardownValue);
+  }
+);
+
+addTest('Tests should run after setup is finished', () => {
+  // then
+  assert.equals(context.setupValue, expected.setupValue);
+});
+
+addTest('Tests should run after ALL setups execute', () => {
+  // then
+  assert.equals(context.setupValue_2, expected.setupValue_2);
+});
+
+addTest('Tests should run before teardown', () => {
+  // when
+  context.teardownValue = expected.teardownValue;
+});
 
 addTest('Test it fails on different arrays', () => {
   // given
   [
-    [ [], [0] ],
-    [ [0], [1] ],
-    [ [0], [0,1] ],
-    [ [0,1], [0] ],
-    [ [0,0], [0,1] ],
+    [[], [0]],
+    [[0], [1]],
+    [[0], [0, 1]],
+    [[0, 1], [0]],
+    [[0, 0], [0, 1]],
   ].forEach(([a, b]) => {
     // when
     let error = null;
     try {
       assert.deepEquals(a, b);
-    } catch(e) {
+    } catch (e) {
       error = e;
     }
     // then
-    if (error === null || typeof(error) === 'undefined') {
+    if (error === null || typeof (error) === 'undefined') {
       throw new Error('Error should not be null.');
     }
   });
@@ -55,4 +107,11 @@ addTest('Compares scalar values', () => {
       { z: (a) => a + 1, y: 1 },
       { x: (b) => b + 1, y: 2 }
     ));
+});
+
+addTest('Can test promises', () => {
+  return new Promise((resolve) => {
+    assert.equals(1, 1);
+    resolve(true);
+  });
 });

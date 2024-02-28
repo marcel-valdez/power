@@ -14,7 +14,7 @@ function print {
 function run_all_tests {
   print "Running all tests."
   local exit_code=0
-  for test_file in ./tests/**/*test.mjs; do
+  for test_file in ./tests/**/*test.*js; do
     run_test "${test_file}"
     ! [[ $? -eq 0 ]] && exit_code=1
   done
@@ -34,8 +34,13 @@ function get_test_file {
   local filename=$(basename ${src_file})
   local dirpath=$(dirname ${src_file})
 
-  local test_dirpath=${dirpath/power/power\/tests/}
-  local test_filename=${filename/\.mjs/.test.mjs}
+  local test_dirpath=${dirpath/power/power\/tests}
+  local test_filename=
+  if [[ "${src_file}" =~ \.js ]]; then
+    test_filename=${filename/\.js/.test.mjs}
+  elif [[ "${src_file}" =~ \.mjs ]]; then
+    test_filename=${filename/\.mjs/.test.mjs}
+  fi
   echo ${test_dirpath}/${test_filename}
 }
 
@@ -48,18 +53,16 @@ function main {
   local file=$1
   local test_file=
   clear
-  print "Regenerating TAGS file"
-  etags *.mjs &>/tmp/power-etags.log &
 
 
-  if ! [[ "${file}" =~ /test/ ]]; then
+  if ! [[ "${file}" =~ /tests/ ]]; then
     # regenerate app if changed file isn't a test file
     rebuild_app
   fi
 
-  if [[ "${file}" =~ test\.mjs ]]; then
+  if [[ "${file}" =~ test\.m?js ]]; then
     run_test "${file}"
-  elif [[ "${file}" =~ \.mjs ]]; then
+  elif [[ "${file}" =~ \.m?js ]]; then
     test_file=$(get_test_file "${file}")
     if [[ -e "${test_file}" ]]; then
       run_test "${test_file}"

@@ -1,20 +1,40 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+watcher_pids=()
 
 function kill_previous {
   ps aux | sed -r 's/[ ]+/ /g' | grep 'bin/watchfile' | cut -d' ' -f2 |\
-    xargs -Ippp kill -9 ppp
+    xargs -Ipid kill -9 pid
+}
+
+function kill_watcher {
+  for pid in "${watcher_pids[@]}"; do
+    kill -9 ${pid}
+  done
+}
+
+function watch_directory {
+  local watched_dir="$1"
+  watchfile --recursive --regx '.*\.m?js$'\
+    --directory "${watched_dir}"\
+    "${DIR}/handle_watched_file.sh __file__" &
+
+  watcher_pids+=($!)
 }
 
 kill_previous
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/ui" "${DIR}/handle_watched_file.sh" __file__ &
+trap kill_watcher EXIT
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/core" "${DIR}/handle_watched_file.sh" __file__ &
+watch_directory "${DIR}/ui"
+watch_directory "${DIR}/core"
+watch_directory "${DIR}/ai"
+watch_directory "${DIR}/tests"
+watch_directory "${DIR}/multiplayer"
+watch_directory "${DIR}/server"
+watch_directory "${DIR}/client"
 
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/ai" "${DIR}/handle_watched_file.sh" __file__ &
-
-watchfile --recursive --regx '.*\.mjs$' --directory "${DIR}/tests" "${DIR}/handle_watched_file.sh" __file__ &
+watchfile --regx '.*\.m?js$' --directory "${DIR}/" "${DIR}/handle_watched_file.sh" __file__ &
 
 wait

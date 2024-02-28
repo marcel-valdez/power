@@ -1,3 +1,5 @@
+// jshint esversion: 6
+
 const Winner = Object.freeze({
   ATTACKER: 'ATTACKER',
   DEFENDER: 'DEFENDER'
